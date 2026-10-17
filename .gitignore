@@ -1,0 +1,7 @@
+target/
+build/
+.idea/
+.vscode/
+*.class
+node_modules/
+.env
