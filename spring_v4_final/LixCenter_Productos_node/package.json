@@ -1,0 +1,19 @@
+{
+  "name": "lixcenter-productos-node",
+  "version": "1.0.0",
+  "description": "Modulo de Productos en Node.js + Sequelize + EJS, en paralelo al backend Spring Boot de LixCenter",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
+  "dependencies": {
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "sequelize": "^6.37.3",
+    "tedious": "^18.2.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}

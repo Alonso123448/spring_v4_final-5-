@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Módulo Productos - LixCenter (Node.js)</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            background: radial-gradient(circle at top left,#1e3a8a 0%,transparent 25%),
+                        radial-gradient(circle at bottom right,#7c3aed 0%,transparent 25%),
+                        #0f172a;
+            font-family:'Segoe UI',sans-serif; color:#e2e8f0; min-height:100vh; padding:30px;
+        }
+        .contenedor {
+            max-width:1100px; margin:0 auto;
+            background:rgba(255,255,255,.06); backdrop-filter:blur(20px);
+            border-radius:24px; padding:28px; border:1px solid rgba(255,255,255,.08);
+            box-shadow:0 15px 40px rgba(0,0,0,.25);
+        }
+        h1 { font-size:28px; font-weight:800; margin-bottom:6px;
+             text-shadow:0 0 10px rgba(59,130,246,.7); }
+        .sub { color:#94a3b8; font-size:14px; margin-bottom:24px; }
+        .badge-node { background:rgba(16,185,129,.2); color:#6ee7b7; padding:4px 12px;
+             border-radius:20px; font-size:12px; font-weight:700; border:1px solid rgba(16,185,129,.3); }
+        table { width:100%; border-collapse:separate; border-spacing:0 8px; }
+        thead th { color:#93c5fd; font-size:13px; font-weight:700; text-transform:uppercase;
+             letter-spacing:1px; padding:12px 16px; text-align:left; }
+        tbody tr { background:rgba(255,255,255,.04); transition:.3s; }
+        tbody tr:hover { background:rgba(59,130,246,.1); }
+        tbody td { padding:13px 16px; font-size:14px; }
+        .precio { color:#34d399; font-weight:700; }
+        .stock-ok { color:#6ee7b7; } .stock-bajo { color:#fca5a5; }
+        .estado-activo { background:rgba(16,185,129,.2); color:#6ee7b7; padding:4px 12px;
+             border-radius:20px; font-size:12px; font-weight:700; }
+        .estado-inactivo { background:rgba(239,68,68,.2); color:#fca5a5; padding:4px 12px;
+             border-radius:20px; font-size:12px; font-weight:700; }
+        .vacio { text-align:center; padding:40px; color:#64748b; }
+    </style>
+</head>
+<body>
+    <div class="contenedor">
+        <h1>Módulo de Productos <span class="badge-node">Node.js + Sequelize</span></h1>
+        <p class="sub">Datos leídos en tiempo real desde SQL Server (Sistema_Marcos) — la misma base de datos del sistema principal.</p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Precio</th>
+                    <th>Stock</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (productos && productos.length > 0) { %>
+                    <% productos.forEach(function(p) { %>
+                        <tr>
+                            <td><%= p.id %></td>
+                            <td><%= p.nombre %></td>
+                            <td class="precio">S/ <%= p.precio %></td>
+                            <td class="<%= (p.stock > 5) ? 'stock-ok' : 'stock-bajo' %>"><%= p.stock %></td>
+                            <td>
+                                <% if (p.estado) { %>
+                                    <span class="estado-activo">Activo</span>
+                                <% } else { %>
+                                    <span class="estado-inactivo">Inactivo</span>
+                                <% } %>
+                            </td>
+                        </tr>
+                    <% }); %>
+                <% } else { %>
+                    <tr><td colspan="5" class="vacio">No hay productos registrados.</td></tr>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
