@@ -1,0 +1,4 @@
+Modulo LixCenter Productos (Node.js) corriendo en http://localhost:3001
+  - Pagina del modulo:  http://localhost:3001/productos
+  - API REST (JSON):    http://localhost:3001/api/productos
+Conectado a SQL Server (Sistema_Marcos) desde Node.js
