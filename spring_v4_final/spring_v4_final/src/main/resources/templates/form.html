@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Producto</title>
+
+    <style>
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #74ebd5 0%, #ACB6E5 100%);
+            margin: 0;
+            padding: 40px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #fff;
+            margin-bottom: 30px;
+            font-size: 2em;
+            letter-spacing: 1px;
+        }
+
+        form {
+            max-width: 500px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 6px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 1em;
+            box-sizing: border-box;
+        }
+
+        input:focus,
+        select:focus {
+            border-color: #74ebd5;
+            outline: none;
+            box-shadow: 0 0 5px rgba(116,235,213,0.5);
+        }
+
+        button {
+            margin-top: 25px;
+            width: 100%;
+            padding: 12px;
+            background: #74ebd5;
+            color: #333;
+            border: none;
+            border-radius: 6px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #4bb3a7;
+        }
+
+        .preview {
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .preview img {
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 10px;
+            border: 2px solid #ccc;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<h1 th:text="${producto.id == null ? 'Nuevo Producto' : 'Editar Producto'}">
+    Producto
+</h1>
+
+<form th:action="@{/productos/guardar}"
+      th:object="${producto}"
+      method="post"
+      enctype="multipart/form-data">
+
+    <!-- ID oculto -->
+    <input type="hidden" th:field="*{id}">
+
+    <!-- Nombre -->
+    <label for="nombre">Nombre:</label>
+
+    <input type="text"
+           id="nombre"
+           th:field="*{nombre}"
+           required>
+
+    <!-- Detalle -->
+    <label for="detalle">Detalle:</label>
+
+    <input type="text"
+           id="detalle"
+           th:field="*{detalle}"
+           required>
+
+  <!-- Precio -->
+<label for="precio">Precio:</label>
+
+<input type="number"
+       id="precio"
+       th:field="*{precio}"
+       step="0.01"
+       required>
+
+<!-- Stock -->
+<label for="stock">Stock:</label>
+
+<input type="number"
+       id="stock"
+       th:field="*{stock}"
+       min="0">
+
+<!-- Stock mínimo -->
+<label for="stockMinimo">
+    Stock Mínimo:
+</label>
+
+<input type="number"
+       id="stockMinimo"
+       th:field="*{stockMinimo}"
+       min="0">
+
+<!-- Fecha vencimiento -->
+<label for="fechaVencimiento">
+    Fecha de Vencimiento:
+</label>
+
+<input type="date"
+       id="fechaVencimiento"
+       th:field="*{fechaVencimiento}">
+
+    <!-- Categoría -->
+   <label>Categoría:</label>
+
+<select name="categoria.id" required>
+
+    <option value="">
+        Seleccione categoría
+    </option>
+
+    <option th:each="c : ${categorias}"
+            th:value="${c.id}"
+            th:text="${c.nombre}">
+    </option>
+
+</select>
+
+<br><br>
+
+    <!-- Proveedor -->
+    <label>Proveedor:</label>
+
+<select name="proveedor.id" required>
+
+    <option value="">
+        Seleccione proveedor
+    </option>
+
+    <option th:each="p : ${proveedores}"
+            th:value="${p.id}"
+            th:text="${p.nombre}">
+    </option>
+
+</select>
+
+<br><br>
+
+    <!-- IMÁGENES -->
+    <label for="archivos">Imágenes:</label>
+
+    <input type="file"
+           id="archivos"
+           name="archivos"
+           multiple>
+
+    <!-- PREVIEW -->
+    <div class="preview">
+
+        <img th:if="${producto.imagenes != null and !#lists.isEmpty(producto.imagenes)}"
+             th:src="${producto.imagenes[0].ruta}">
+
+    </div>
+
+    <!-- BOTÓN -->
+    <button type="submit">
+    Guardar
+</button>
+
+<a th:href="@{/productos}">
+    <button type="button">
+        ← Volver
+    </button>
+</a>
+
+
+
+</form>
+
+<script>
+// Fecha vencimiento: mínimo = hoy
+document.addEventListener('DOMContentLoaded', () => {
+    const hoy = new Date().toISOString().split('T')[0];
+    const inputFecha = document.getElementById('fechaVencimiento');
+    if (inputFecha) {
+        inputFecha.min = hoy;
+        inputFecha.addEventListener('change', function() {
+            if (this.value && this.value < hoy) {
+                this.setCustomValidity('La fecha de vencimiento no puede ser anterior a hoy.');
+                this.reportValidity();
+                this.value = hoy;
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+    }
+});
+</script>
+
+</body>
+</html>

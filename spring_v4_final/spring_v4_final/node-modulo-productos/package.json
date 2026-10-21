@@ -1,0 +1,18 @@
+{
+  "name": "node-modulo-productos",
+  "version": "1.0.0",
+  "description": "Modulo de Productos en Node.js + Sequelize, en paralelo al backend Spring Boot",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "sequelize": "^6.37.3",
+    "tedious": "^18.2.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}

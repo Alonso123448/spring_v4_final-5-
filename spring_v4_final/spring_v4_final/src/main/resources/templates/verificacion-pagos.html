@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Verificación de Pagos</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: #0f172a; font-family: "Segoe UI", sans-serif; color: #e2e8f0; }
+
+        .topbar {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 28px; gap: 16px; flex-wrap: wrap;
+        }
+        .topbar h1 {
+            font-size: 28px; font-weight: 900; color: white;
+            display: flex; align-items: center; gap: 12px;
+        }
+        .topbar h1 .icon-wrap {
+            width: 44px; height: 44px; border-radius: 12px;
+            background: linear-gradient(135deg, #7c3aed, #6d28d9);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px;
+        }
+
+        .filter-bar {
+            display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;
+        }
+        .filter-btn {
+            padding: 8px 18px; border-radius: 10px; border: 1px solid rgba(255,255,255,.1);
+            background: rgba(255,255,255,.05); color: #94a3b8; font-size: 13px;
+            font-weight: 600; cursor: pointer; transition: .2s;
+        }
+        .filter-btn.active, .filter-btn:hover {
+            background: rgba(124,58,237,.2); border-color: rgba(124,58,237,.5); color: #c4b5fd;
+        }
+
+        .table-card {
+            background: #1e293b; border-radius: 18px;
+            border: 1px solid rgba(255,255,255,.07);
+            overflow: hidden;
+        }
+        table { width: 100%; border-collapse: collapse; }
+        thead tr { background: rgba(255,255,255,.04); }
+        th {
+            padding: 14px 16px; font-size: 11px; text-transform: uppercase;
+            letter-spacing: 1px; color: #64748b; font-weight: 700; text-align: left;
+        }
+        td { padding: 14px 16px; font-size: 13px; border-top: 1px solid rgba(255,255,255,.05); }
+        tr:hover td { background: rgba(255,255,255,.02); }
+
+        .badge {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700;
+        }
+        .badge-pending  { background: rgba(245,158,11,.15); color: #fbbf24; }
+        .badge-approved { background: rgba(16,185,129,.15); color: #34d399; }
+        .badge-rejected { background: rgba(239,68,68,.15);  color: #f87171; }
+
+        .btn-aprobar, .btn-rechazar {
+            padding: 7px 14px; border: none; border-radius: 8px;
+            font-size: 12px; font-weight: 700; cursor: pointer; transition: .2s;
+        }
+        .btn-aprobar  { background: rgba(16,185,129,.2);  color: #34d399; }
+        .btn-rechazar { background: rgba(239,68,68,.15);  color: #f87171; }
+        .btn-aprobar:hover  { background: rgba(16,185,129,.35); }
+        .btn-rechazar:hover { background: rgba(239,68,68,.3); }
+
+        .voucher-link {
+            display: inline-flex; align-items: center; gap: 5px;
+            color: #7c3aed; text-decoration: none; font-size: 12px; font-weight: 600;
+            padding: 5px 10px; border-radius: 8px; border: 1px solid rgba(124,58,237,.3);
+        }
+        .voucher-link:hover { background: rgba(124,58,237,.1); }
+
+        .empty-state {
+            text-align: center; padding: 60px 20px; color: #475569;
+        }
+        .empty-state i { font-size: 48px; margin-bottom: 16px; }
+
+        .stats-row {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 14px; margin-bottom: 24px;
+        }
+        .stat-card {
+            background: #1e293b; border-radius: 14px; padding: 16px 20px;
+            border: 1px solid rgba(255,255,255,.07);
+        }
+        .stat-card .num { font-size: 26px; font-weight: 900; color: white; }
+        .stat-card .lbl { font-size: 12px; color: #64748b; margin-top: 4px; }
+
+        /* ── Botón ojo ── */
+        .btn-ver {
+            padding: 7px 12px; border: none; border-radius: 8px;
+            font-size: 12px; font-weight: 700; cursor: pointer; transition: .2s;
+            background: rgba(99,102,241,.2); color: #a5b4fc;
+        }
+        .btn-ver:hover { background: rgba(99,102,241,.35); }
+
+        /* ── Modales overlay ── */
+        .vp-overlay {
+            display: none; position: fixed; inset: 0; z-index: 9000;
+            background: rgba(0,0,0,.7); backdrop-filter: blur(4px);
+            align-items: center; justify-content: center;
+        }
+        .vp-overlay.open { display: flex; }
+        .vp-modal {
+            background: #1e293b; border-radius: 20px; width: 540px; max-width: 95vw;
+            border: 1px solid rgba(255,255,255,.1);
+            box-shadow: 0 25px 60px rgba(0,0,0,.5);
+            max-height: 90vh; overflow-y: auto;
+        }
+        .vp-modal-hdr {
+            padding: 22px 26px 16px; border-bottom: 1px solid rgba(255,255,255,.07);
+            display: flex; align-items: flex-start; justify-content: space-between;
+        }
+        .vp-modal-hdr h3 { font-size: 17px; font-weight: 800; color: white; margin-bottom: 3px; }
+        .vp-modal-hdr p  { font-size: 12px; color: #64748b; }
+        .vp-modal-body  { padding: 22px 26px; }
+        .vp-modal-foot  {
+            padding: 16px 26px; border-top: 1px solid rgba(255,255,255,.07);
+            display: flex; justify-content: flex-end; gap: 10px;
+        }
+        .vp-close-btn {
+            background: none; border: none; color: #64748b; font-size: 18px;
+            cursor: pointer; padding: 4px; line-height: 1; transition: .2s;
+        }
+        .vp-close-btn:hover { color: white; }
+
+        /* Aprobar modal – form fields */
+        .vp-label { font-size: 13px; font-weight: 700; color: #cbd5e1; margin-bottom: 8px; display: block; }
+        .vp-sublabel { font-size: 11px; color: #475569; margin-top: 5px; }
+        .vp-file-wrap {
+            display: flex; align-items: center; gap: 0;
+            border: 1px solid rgba(255,255,255,.1); border-radius: 10px;
+            overflow: hidden; background: rgba(255,255,255,.04);
+        }
+        .vp-file-wrap label {
+            padding: 10px 16px; background: rgba(255,255,255,.06); color: #94a3b8;
+            font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap;
+            border-right: 1px solid rgba(255,255,255,.08); transition: .2s;
+        }
+        .vp-file-wrap label:hover { background: rgba(255,255,255,.1); color: white; }
+        .vp-file-wrap input[type=file] { display: none; }
+        .vp-file-name { padding: 10px 14px; font-size: 13px; color: #64748b; flex: 1; }
+        .vp-textarea {
+            width: 100%; border: 1px solid rgba(255,255,255,.1); border-radius: 10px;
+            background: rgba(255,255,255,.04); color: #e2e8f0; font-size: 13px;
+            padding: 10px 14px; resize: vertical; min-height: 80px; font-family: inherit;
+        }
+        .vp-textarea:focus { outline: none; border-color: rgba(124,58,237,.5); }
+        .vp-btn-cancel {
+            padding: 10px 20px; border-radius: 10px; border: 1px solid rgba(255,255,255,.1);
+            background: rgba(255,255,255,.05); color: #94a3b8; font-size: 13px;
+            font-weight: 700; cursor: pointer; transition: .2s;
+        }
+        .vp-btn-cancel:hover { background: rgba(255,255,255,.1); color: white; }
+        .vp-btn-aprobar {
+            padding: 10px 22px; border-radius: 10px; border: none;
+            background: linear-gradient(135deg,#10b981,#059669); color: white;
+            font-size: 13px; font-weight: 800; cursor: pointer; transition: .2s;
+            display: flex; align-items: center; gap: 7px;
+        }
+        .vp-btn-aprobar:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(16,185,129,.3); }
+
+        /* Detalle modal */
+        .det-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+        .det-field label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #475569; font-weight: 700; }
+        .det-field span  { display: block; font-size: 14px; font-weight: 700; color: #e2e8f0; margin-top: 3px; }
+        .det-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        .det-table th { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #475569; font-weight: 700; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,.07); }
+        .det-table td { padding: 10px 0; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,.04); }
+        .det-footer { display: flex; gap: 24px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,.07); }
+        .det-footer-item label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #475569; font-weight: 700; }
+        .det-footer-item span  { display: block; font-size: 17px; font-weight: 900; color: white; margin-top: 3px; }
+        .badge-ok { background: rgba(16,185,129,.15); color: #34d399; padding: 3px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+        .det-sec-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #475569; font-weight: 700; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+<th:block th:replace="~{fragments/sidebar :: sidebar}"/>
+
+<div class="main">
+
+    <div class="topbar">
+        <h1>
+            <div class="icon-wrap"><i class="fa-solid fa-shield-check" style="color:white;font-size:18px;"></i></div>
+            Verificación de Pagos
+        </h1>
+        <a href="/verificacion-pagos"
+           style="padding:10px 18px;border-radius:10px;background:rgba(255,255,255,.06);
+                  border:1px solid rgba(255,255,255,.1);color:#94a3b8;text-decoration:none;
+                  font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;">
+            <i class="fa-solid fa-rotate-right"></i> Actualizar
+        </a>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="num" th:text="${#lists.size(pedidos)}">0</div>
+            <div class="lbl">Total pedidos</div>
+        </div>
+        <div class="stat-card">
+            <div class="num" style="color:#fbbf24;"
+                 th:text="${#lists.size(pedidos.?[aprobacionPedido == 'PENDIENTE'])}">0</div>
+            <div class="lbl">En revisión</div>
+        </div>
+        <div class="stat-card">
+            <div class="num" style="color:#34d399;"
+                 th:text="${#lists.size(pedidos.?[aprobacionPedido == 'APROBADO'])}">0</div>
+            <div class="lbl">Aprobados</div>
+        </div>
+        <div class="stat-card">
+            <div class="num" style="color:#f87171;"
+                 th:text="${#lists.size(pedidos.?[aprobacionPedido == 'RECHAZADO'])}">0</div>
+            <div class="lbl">Rechazados</div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="filter-bar">
+        <button class="filter-btn active" onclick="filtrar('TODOS',this)">Todos</button>
+        <button class="filter-btn" onclick="filtrar('PENDIENTE',this)">⏳ En revisión</button>
+        <button class="filter-btn" onclick="filtrar('APROBADO',this)">✅ Aprobados</button>
+        <button class="filter-btn" onclick="filtrar('RECHAZADO',this)">❌ Rechazados</button>
+    </div>
+
+    <!-- Tabla -->
+    <div class="table-card">
+        <table>
+            <thead>
+                <tr>
+                    <th>Pedido</th>
+                    <th>Cliente</th>
+                    <th>Total</th>
+                    <th>Método</th>
+                    <th>Cód. Operación</th>
+                    <th>Entrega</th>
+                    <th>Voucher</th>
+                    <th>Estado</th>
+                    <th>Fecha</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="tablaPedidos">
+                <tr th:if="${#lists.isEmpty(pedidos)}">
+                    <td colspan="10">
+                        <div class="empty-state">
+                            <i class="fa-solid fa-inbox"></i>
+                            <p>No hay pedidos online registrados aún.</p>
+                        </div>
+                    </td>
+                </tr>
+                <tr th:each="p : ${pedidos}"
+                    th:data-estado="${p.aprobacionPedido}"
+                    th:id="'row-' + ${p.id}">
+                    <td>
+                        <span style="font-weight:800;color:#a5b4fc;" th:text="${p.numeroDocumento}"></span>
+                    </td>
+                    <td>
+                        <div style="font-weight:700;" th:text="${p.clienteNombre}"></div>
+                        <div style="font-size:11px;color:#64748b;" th:text="${p.clienteDocumento}"></div>
+                        <div style="font-size:11px;color:#64748b;" th:text="${p.clienteTelefono}"></div>
+                    </td>
+                    <td>
+                        <span style="font-weight:800;color:#34d399;"
+                              th:text="'S/ ' + ${#numbers.formatDecimal(p.total, 1, 2)}"></span>
+                    </td>
+                    <td>
+                        <span th:text="${p.formaPago}"
+                              style="background:rgba(124,58,237,.15);color:#c4b5fd;
+                                     padding:3px 10px;border-radius:10px;font-size:11px;font-weight:700;"></span>
+                    </td>
+                    <td>
+                        <span th:if="${p.codigoOperacion != null}"
+                              style="font-family:monospace;color:#e2e8f0;"
+                              th:text="${p.codigoOperacion}"></span>
+                        <span th:unless="${p.codigoOperacion != null}"
+                              style="color:#475569;">—</span>
+                    </td>
+                    <td>
+                        <div th:if="${p.tipoEntrega == 'DOMICILIO'}">
+                            <span style="color:#60a5fa;font-size:11px;font-weight:700;">🚚 Domicilio</span>
+                            <div style="font-size:11px;color:#64748b;margin-top:2px;"
+                                 th:text="${p.direccionEntrega}"></div>
+                        </div>
+                        <span th:unless="${p.tipoEntrega == 'DOMICILIO'}"
+                              style="color:#94a3b8;font-size:11px;font-weight:700;">🏪 Tienda</span>
+                    </td>
+                    <td>
+                        <a th:if="${p.rutaVoucher != null}"
+                           th:href="${p.rutaVoucher}" target="_blank" class="voucher-link">
+                            <i class="fa-solid fa-image"></i> Ver
+                        </a>
+                        <span th:unless="${p.rutaVoucher != null}" style="color:#475569;">—</span>
+                    </td>
+                    <td>
+                        <span th:if="${p.aprobacionPedido == 'PENDIENTE'}"  class="badge badge-pending">⏳ Revisión</span>
+                        <span th:if="${p.aprobacionPedido == 'APROBADO'}"   class="badge badge-approved">✅ Aprobado</span>
+                        <span th:if="${p.aprobacionPedido == 'RECHAZADO'}"  class="badge badge-rejected">❌ Rechazado</span>
+                    </td>
+                    <td style="font-size:12px;color:#64748b;"
+                        th:text="${#temporals.format(p.fecha,'dd/MM/yyyy HH:mm')}"></td>
+                    <td>
+                        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+                            <!-- Ojo: siempre visible -->
+                            <button class="btn-ver"
+                                    th:onclick="'verDetalle(' + ${p.id} + ')'"
+                                    title="Ver detalle">
+                                <i class="fa-solid fa-eye"></i>
+                            </button>
+                            <!-- Aprobar / Rechazar: solo PENDIENTE -->
+                            <th:block th:if="${p.aprobacionPedido == 'PENDIENTE'}">
+                                <button class="btn-aprobar"
+                                        th:onclick="'abrirAprobar(' + ${p.id} + ')'">
+                                    <i class="fa-solid fa-check"></i> Aprobar
+                                </button>
+                                <button class="btn-rechazar"
+                                        th:onclick="'rechazar(' + ${p.id} + ')'">
+                                    <i class="fa-solid fa-xmark"></i> Rechazar
+                                </button>
+                            </th:block>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+<!-- ══════════════════ MODAL: APROBAR PAGO ══════════════════ -->
+<div class="vp-overlay" id="overlayAprobar">
+    <div class="vp-modal">
+        <div class="vp-modal-hdr">
+            <div>
+                <h3><i class="fa-solid fa-circle-check" style="color:#34d399;margin-right:8px;"></i>Aprobar Pago</h3>
+                <p>Confirmar verificación del pago</p>
+            </div>
+            <button class="vp-close-btn" onclick="cerrarAprobar()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="vp-modal-body">
+            <div style="margin-bottom:18px;">
+                <label class="vp-label">Adjuntar Comprobante Admin <span style="color:#475569;font-weight:400;">(opcional)</span></label>
+                <div class="vp-file-wrap">
+                    <label for="inputVoucherAdmin"><i class="fa-solid fa-paperclip" style="margin-right:6px;"></i>Elegir archivo</label>
+                    <input type="file" id="inputVoucherAdmin" accept="image/*,.pdf"
+                           onchange="document.getElementById('fileNameAdmin').textContent = this.files[0]?.name || 'Sin archivo'">
+                    <span class="vp-file-name" id="fileNameAdmin">Sin archivo</span>
+                </div>
+                <p class="vp-sublabel">Solo si deseas reemplazar el comprobante del cliente.</p>
+            </div>
+            <div>
+                <label class="vp-label">Notas <span style="color:#475569;font-weight:400;">(opcional)</span></label>
+                <textarea class="vp-textarea" id="textNotasAdmin" placeholder="Observaciones..."></textarea>
+            </div>
+        </div>
+        <div class="vp-modal-foot">
+            <button class="vp-btn-cancel" onclick="cerrarAprobar()">Cancelar</button>
+            <button class="vp-btn-aprobar" onclick="confirmarAprobar()">
+                <i class="fa-solid fa-check"></i> Aprobar
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════════════ MODAL: DETALLE DE ORDEN ══════════════════ -->
+<div class="vp-overlay" id="overlayDetalle">
+    <div class="vp-modal" style="width:580px;">
+        <div class="vp-modal-hdr">
+            <div>
+                <h3><i class="fa-solid fa-file-lines" style="color:#a5b4fc;margin-right:8px;"></i>Detalle de Orden</h3>
+                <p id="detNumero" style="color:#a5b4fc;font-weight:700;font-size:13px;"></p>
+            </div>
+            <button class="vp-close-btn" onclick="cerrarDetalle()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="vp-modal-body">
+            <div class="det-grid">
+                <div class="det-field">
+                    <label><i class="fa-solid fa-user" style="margin-right:4px;"></i>Cliente</label>
+                    <span id="detCliente"></span>
+                </div>
+                <div class="det-field">
+                    <label><i class="fa-solid fa-id-card" style="margin-right:4px;"></i>DNI / RUC</label>
+                    <span id="detDoc"></span>
+                </div>
+                <div class="det-field">
+                    <label><i class="fa-solid fa-phone" style="margin-right:4px;"></i>Teléfono</label>
+                    <span id="detTel"></span>
+                </div>
+                <div class="det-field">
+                    <label><i class="fa-solid fa-location-dot" style="margin-right:4px;"></i>Dirección</label>
+                    <span id="detDir"></span>
+                </div>
+            </div>
+
+            <p class="det-sec-title">Productos</p>
+            <table class="det-table">
+                <thead>
+                    <tr>
+                        <th style="text-align:left;">Producto</th>
+                        <th style="text-align:center;">Cant.</th>
+                        <th style="text-align:right;">P. Unit.</th>
+                        <th style="text-align:right;">Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody id="detItems"></tbody>
+            </table>
+
+            <div class="det-footer">
+                <div class="det-footer-item">
+                    <label>Total Orden</label>
+                    <span id="detTotal" style="color:#34d399;"></span>
+                </div>
+                <div class="det-footer-item">
+                    <label>Monto Pagado</label>
+                    <span id="detPagado" style="color:#34d399;"></span>
+                </div>
+                <div class="det-footer-item">
+                    <label>Validación</label>
+                    <span><span class="badge-ok"><i class="fa-solid fa-circle-check" style="margin-right:4px;"></i>Correcto</span></span>
+                </div>
+                <div class="det-footer-item" id="detVoucherWrap" style="display:none;">
+                    <label>Comprobante</label>
+                    <span><a id="detVoucherLink" href="#" target="_blank" style="color:#a5b4fc;font-size:13px;"><i class="fa-solid fa-image"></i> Ver</a></span>
+                </div>
+            </div>
+
+            <div id="detNotasWrap" style="display:none;margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.07);">
+                <label class="det-sec-title">Notas del Admin</label>
+                <p id="detNotas" style="font-size:13px;color:#94a3b8;"></p>
+            </div>
+        </div>
+        <div class="vp-modal-foot">
+            <button class="vp-btn-cancel" onclick="cerrarDetalle()"><i class="fa-solid fa-xmark" style="margin-right:5px;"></i>Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+<script>
+let _aprobarId = null;
+
+function filtrar(estado, btn) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('#tablaPedidos tr[data-estado]').forEach(row => {
+        row.style.display = (estado === 'TODOS' || row.dataset.estado === estado) ? '' : 'none';
+    });
+}
+
+// ── Modal Aprobar ──
+function abrirAprobar(id) {
+    _aprobarId = id;
+    document.getElementById('inputVoucherAdmin').value = '';
+    document.getElementById('fileNameAdmin').textContent = 'Sin archivo';
+    document.getElementById('textNotasAdmin').value = '';
+    document.getElementById('overlayAprobar').classList.add('open');
+}
+function cerrarAprobar() {
+    document.getElementById('overlayAprobar').classList.remove('open');
+    _aprobarId = null;
+}
+async function confirmarAprobar() {
+    if (!_aprobarId) return;
+    const fd = new FormData();
+    const file = document.getElementById('inputVoucherAdmin').files[0];
+    if (file) fd.append('voucherAdmin', file);
+    fd.append('notasAdmin', document.getElementById('textNotasAdmin').value);
+    const res  = await fetch(`/verificacion-pagos/aprobar/${_aprobarId}`, { method: 'POST', body: fd });
+    const data = await res.json();
+    cerrarAprobar();
+    if (data.ok) {
+        Swal.fire({ title: 'Aprobado', icon: 'success', timer: 1500, showConfirmButton: false,
+                    background: '#1e293b', color: '#e2e8f0' });
+        setTimeout(() => location.reload(), 1600);
+    } else {
+        Swal.fire({ title: 'Error', text: data.msg, icon: 'error', background: '#1e293b', color: '#e2e8f0' });
+    }
+}
+
+// ── Modal Rechazar ──
+async function rechazar(id) {
+    const result = await Swal.fire({
+        title: '¿Rechazar pedido?',
+        text: 'El pedido será marcado como RECHAZADO y la venta anulada.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: '❌ Rechazar',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#ef4444',
+        background: '#1e293b',
+        color: '#e2e8f0'
+    });
+    if (!result.isConfirmed) return;
+    const res  = await fetch(`/verificacion-pagos/rechazar/${id}`, { method: 'POST' });
+    const data = await res.json();
+    if (data.ok) {
+        Swal.fire({ title: 'Rechazado', icon: 'info', timer: 1500, showConfirmButton: false,
+                    background: '#1e293b', color: '#e2e8f0' });
+        setTimeout(() => location.reload(), 1600);
+    } else {
+        Swal.fire({ title: 'Error', text: data.msg, icon: 'error', background: '#1e293b', color: '#e2e8f0' });
+    }
+}
+
+// ── Modal Detalle ──
+async function verDetalle(id) {
+    const res  = await fetch(`/verificacion-pagos/detalle/${id}`);
+    const d    = await res.json();
+    if (!d.ok) return;
+
+    document.getElementById('detNumero').textContent  = d.numero;
+    document.getElementById('detCliente').textContent = d.clienteNombre || '—';
+    document.getElementById('detDoc').textContent     = d.clienteDocumento || '—';
+    document.getElementById('detTel').textContent     = d.clienteTelefono || '—';
+    document.getElementById('detDir').textContent     = d.tipoEntrega === 'DOMICILIO'
+        ? (d.direccionEntrega || '—') : '🏪 Recojo en tienda';
+
+    const tbody = document.getElementById('detItems');
+    tbody.innerHTML = '';
+    (d.detalles || []).forEach(item => {
+        const tr = document.createElement('tr');
+        const imgHtml = item.imagen
+            ? `<img src="${item.imagen}" alt="" style="width:38px;height:38px;border-radius:8px;object-fit:cover;margin-right:10px;flex-shrink:0;border:1px solid rgba(255,255,255,.1);">`
+            : `<div style="width:38px;height:38px;border-radius:8px;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;margin-right:10px;flex-shrink:0;"><i class="fa-solid fa-box" style="color:#475569;font-size:14px;"></i></div>`;
+        tr.innerHTML = `
+            <td><div style="display:flex;align-items:center;">${imgHtml}<span>${item.nombre}</span></div></td>
+            <td style="text-align:center;">${item.cantidad}</td>
+            <td style="text-align:right;">S/ ${parseFloat(item.precio).toFixed(2)}</td>
+            <td style="text-align:right;font-weight:700;color:#34d399;">S/ ${parseFloat(item.subtotal).toFixed(2)}</td>`;
+        tbody.appendChild(tr);
+    });
+
+    const totalFmt = 'S/ ' + parseFloat(d.total).toFixed(2);
+    document.getElementById('detTotal').textContent  = totalFmt;
+    document.getElementById('detPagado').textContent = totalFmt;
+
+    const vw = document.getElementById('detVoucherWrap');
+    if (d.rutaVoucher) {
+        vw.style.display = '';
+        document.getElementById('detVoucherLink').href = d.rutaVoucher;
+    } else { vw.style.display = 'none'; }
+
+    const nw = document.getElementById('detNotasWrap');
+    if (d.notasAdmin) {
+        nw.style.display = '';
+        document.getElementById('detNotas').textContent = d.notasAdmin;
+    } else { nw.style.display = 'none'; }
+
+    document.getElementById('overlayDetalle').classList.add('open');
+}
+function cerrarDetalle() {
+    document.getElementById('overlayDetalle').classList.remove('open');
+}
+
+// Cerrar con click fuera
+document.getElementById('overlayAprobar').addEventListener('click', e => { if(e.target===e.currentTarget) cerrarAprobar(); });
+document.getElementById('overlayDetalle').addEventListener('click', e => { if(e.target===e.currentTarget) cerrarDetalle(); });
+</script>
+</body>
+</html>

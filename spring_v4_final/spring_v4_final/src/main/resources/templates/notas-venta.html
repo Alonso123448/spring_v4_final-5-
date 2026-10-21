@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notas de Venta - Inventario</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
+    <style>
+        *{ margin:0; padding:0; box-sizing:border-box; }
+        body{
+            background:
+                radial-gradient(circle at top left,#1e3a8a 0%,transparent 25%),
+                radial-gradient(circle at bottom right,#7c3aed 0%,transparent 25%),
+                #0f172a;
+            font-family:'Segoe UI',sans-serif; color:white; min-height:100vh;
+        }
+        .main{ margin-left:270px; padding:30px; }
+        .topbar{ display:flex; justify-content:space-between; align-items:center; margin-bottom:30px; }
+        .topbar h2{ font-size:32px; font-weight:800;
+            text-shadow:0 0 10px rgba(59,130,246,.7),0 0 20px rgba(124,58,237,.5); }
+
+        /* BUSCADOR */
+        .search-bar{
+            background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.1);
+            border-radius:14px; padding:10px 16px; color:white; width:280px;
+        }
+        .search-bar::placeholder{ color:#64748b; }
+        .search-bar:focus{ outline:none; border-color:#3b82f6; }
+
+        /* ===== NOTA CARD ===== */
+        .nota-card{
+            background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08);
+            border-radius:20px; margin-bottom:24px; overflow:hidden;
+            box-shadow:0 8px 30px rgba(0,0,0,.25); transition:.3s;
+        }
+        .nota-card:hover{ box-shadow:0 12px 40px rgba(59,130,246,.2); transform:translateY(-2px); }
+
+        /* HEADER DE CARD */
+        .nota-header{
+            background:linear-gradient(135deg,#0f172a,#1e293b);
+            border-bottom:1px solid rgba(255,255,255,.07);
+            padding:18px 24px;
+            display:flex; justify-content:space-between; align-items:center;
+        }
+        .nota-empresa{ display:flex; align-items:center; gap:14px; }
+        .nota-empresa img{ width:42px; height:42px; border-radius:10px; object-fit:contain; }
+        .nota-empresa .logo-placeholder{
+            width:42px; height:42px; border-radius:10px;
+            background:linear-gradient(135deg,#2563eb,#7c3aed);
+            display:flex; align-items:center; justify-content:center; font-size:18px;
+        }
+        .nota-empresa h4{ font-size:18px; font-weight:800; color:white; margin:0; }
+        .nota-empresa small{ color:#94a3b8; font-size:12px; letter-spacing:1px; text-transform:uppercase; }
+        .nota-num{
+            background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.12);
+            border-radius:10px; padding:6px 16px;
+            font-size:14px; font-weight:800; color:#93c5fd; letter-spacing:1px;
+        }
+
+        /* INFO CLIENTE */
+        .nota-info{
+            padding:20px 24px;
+            display:grid;
+            grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+            gap:16px;
+            border-bottom:1px solid rgba(255,255,255,.06);
+        }
+        .info-field label{
+            font-size:10px; font-weight:700; color:#64748b;
+            text-transform:uppercase; letter-spacing:1px; display:block; margin-bottom:4px;
+        }
+        .info-field span{ font-size:14px; font-weight:700; color:#e2e8f0; }
+
+        /* BADGES TIPO Y ESTADO */
+        .badge-credito{ background:rgba(124,58,237,.2); color:#c4b5fd; padding:5px 14px;
+            border-radius:20px; font-size:12px; font-weight:700; border:1px solid rgba(124,58,237,.3); }
+        .badge-contado{ background:rgba(16,185,129,.2); color:#6ee7b7; padding:5px 14px;
+            border-radius:20px; font-size:12px; font-weight:700; border:1px solid rgba(16,185,129,.3); }
+        .badge-completada{ background:rgba(16,185,129,.2); color:#6ee7b7; padding:5px 14px;
+            border-radius:20px; font-size:12px; font-weight:700; border:1px solid rgba(16,185,129,.3); }
+        .badge-pendiente{ background:rgba(245,158,11,.2); color:#fcd34d; padding:5px 14px;
+            border-radius:20px; font-size:12px; font-weight:700; border:1px solid rgba(245,158,11,.3); }
+        .badge-anulada{ background:rgba(239,68,68,.2); color:#fca5a5; padding:5px 14px;
+            border-radius:20px; font-size:12px; font-weight:700; border:1px solid rgba(239,68,68,.3); }
+
+        /* TABLA PRODUCTOS */
+        .nota-table-wrap{ padding:0 24px; }
+        .nota-table{ width:100%; border-collapse:separate; border-spacing:0; margin:12px 0; }
+        .nota-table thead th{
+            color:#93c5fd; font-size:11px; font-weight:700; text-transform:uppercase;
+            letter-spacing:1px; padding:10px 12px;
+            background:rgba(255,255,255,.04);
+            border-bottom:1px solid rgba(255,255,255,.06);
+        }
+        .nota-table thead th:first-child{ border-radius:10px 0 0 0; }
+        .nota-table thead th:last-child{ border-radius:0 10px 0 0; }
+        .nota-table tbody td{
+            padding:10px 12px; font-size:13px; color:#e2e8f0;
+            border-bottom:1px solid rgba(255,255,255,.04);
+        }
+        .nota-table tbody tr:last-child td{ border-bottom:none; }
+        .nota-table tbody tr:hover td{ background:rgba(59,130,246,.06); }
+
+        /* TOTAL BAR */
+        .nota-total{
+            background:rgba(255,255,255,.04); border-top:1px solid rgba(255,255,255,.07);
+            padding:14px 24px;
+            display:flex; justify-content:flex-end; align-items:center; gap:16px;
+        }
+        .total-label{ color:#94a3b8; font-size:13px; font-weight:600; text-transform:uppercase; letter-spacing:1px; }
+        .total-amount{ font-size:24px; font-weight:900; color:#60a5fa; }
+
+        /* FOOTER DE CARD */
+        .nota-footer{
+            padding:14px 24px; display:flex; justify-content:flex-end; gap:10px;
+            border-top:1px solid rgba(255,255,255,.05);
+        }
+        .btn-imprimir{
+            border:none; padding:10px 20px; border-radius:12px;
+            background:linear-gradient(135deg,#2563eb,#7c3aed);
+            color:white; font-weight:700; cursor:pointer; transition:.35s;
+            display:flex; align-items:center; gap:8px; font-size:13px;
+            text-decoration:none;
+        }
+        .btn-imprimir:hover{ transform:translateY(-2px); box-shadow:0 8px 20px rgba(99,130,246,.35); color:white; }
+
+        /* EMPTY STATE */
+        .empty-state{ text-align:center; padding:80px 20px; color:#64748b; }
+        .empty-state i{ font-size:64px; margin-bottom:16px; display:block; opacity:.4; }
+
+        /* RESPONSIVE */
+        @media(max-width:768px){
+            .nota-info{ grid-template-columns:1fr 1fr; }
+            .nota-header{ flex-wrap:wrap; gap:10px; }
+            .nota-num{ align-self:flex-start; }
+            .search-bar{ width:100%; }
+            .topbar{ gap:12px; }
+        }
+        @media(max-width:480px){
+            .nota-info{ grid-template-columns:1fr; }
+            .nota-table-wrap{ overflow-x:auto; }
+        }
+    </style>
+</head>
+<body>
+
+<th:block th:replace="~{fragments/sidebar :: sidebar}"></th:block>
+
+<div class="main">
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+        <h2><i class="fa-solid fa-file-invoice" style="font-size:26px;"></i> Notas de Venta</h2>
+        <input type="text" class="search-bar" id="buscador"
+               placeholder="&#xf002;  Buscar por cliente, DNI, N°..."
+               oninput="filtrar(this.value)">
+    </div>
+
+    <!-- CONTADOR -->
+    <div style="margin-bottom:20px; color:#94a3b8; font-size:14px;">
+        <i class="fa-solid fa-list-check" style="color:#3b82f6;"></i>
+        <span id="contador" th:text="${#lists.size(ventas)} + ' notas registradas'"></span>
+    </div>
+
+    <!-- LISTA DE NOTAS -->
+    <div id="listaNotas">
+
+        <div th:if="${#lists.isEmpty(ventas)}" class="empty-state">
+            <i class="fa-solid fa-file-circle-xmark"></i>
+            <h3>No hay notas de venta</h3>
+            <p>Las ventas registradas aparecerán aquí automáticamente.</p>
+        </div>
+
+        <div class="nota-card"
+             th:each="v : ${ventas}"
+             th:attr="data-search=${v.clienteNombre + ' ' + v.clienteDocumento + ' ' + v.id}">
+
+            <!-- HEADER -->
+            <div class="nota-header">
+                <div class="nota-empresa">
+                    <img th:if="${logoActivo != null}" th:src="${logoActivo.ruta}" alt="Logo">
+                    <div th:if="${logoActivo == null}" class="logo-placeholder">
+                        <i class="fa-solid fa-layer-group"></i>
+                    </div>
+                    <div>
+                        <h4 th:text="${appNombre}">Inventario</h4>
+                        <small th:text="${appRubro}">Sistema de Gestión</small>
+                    </div>
+                </div>
+                <div class="nota-num" th:text="'N° ' + ${v.id}">N° 1</div>
+            </div>
+
+            <!-- INFO CLIENTE -->
+            <div class="nota-info">
+                <div class="info-field">
+                    <label>Cliente</label>
+                    <span th:text="${v.clienteNombre ?: 'Sin nombre'}">-</span>
+                </div>
+                <div class="info-field">
+                    <label>Documento</label>
+                    <span th:text="${v.clienteDocumento ?: '-'}">-</span>
+                </div>
+                <div class="info-field">
+                    <label>Teléfono</label>
+                    <span th:with="cli=${clienteMap[v.clienteDocumento]}"
+                          th:text="${cli != null and cli.telefono != null ? cli.telefono : '-'}">-</span>
+                </div>
+                <div class="info-field">
+                    <label>Fecha</label>
+                    <span th:text="${v.fecha != null ? #temporals.format(v.fecha,'dd/MM/yyyy HH:mm') : '-'}">-</span>
+                </div>
+                <div class="info-field">
+                    <label>Tipo</label>
+                    <span th:if="${v.esCredito}"  class="badge-credito">CRÉDITO</span>
+                    <span th:unless="${v.esCredito}" class="badge-contado">CONTADO</span>
+                </div>
+                <div class="info-field">
+                    <label>Estado</label>
+                    <span th:switch="${v.estado}">
+                        <span th:case="'COMPLETADA'" class="badge-completada">APROBADA</span>
+                        <span th:case="'PENDIENTE'"  class="badge-pendiente">PENDIENTE</span>
+                        <span th:case="'ANULADA'"    class="badge-anulada">ANULADA</span>
+                        <span th:case="*"            class="badge-pendiente" th:text="${v.estado}">-</span>
+                    </span>
+                </div>
+            </div>
+
+            <!-- TABLA PRODUCTOS -->
+            <div class="nota-table-wrap">
+                <table class="nota-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Producto</th>
+                            <th style="text-align:center;">Cant.</th>
+                            <th style="text-align:right;">P. Unit.</th>
+                            <th style="text-align:right;">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="d,i : ${v.detalles}">
+                            <td th:text="${i.count}" style="color:#64748b;">1</td>
+                            <td th:text="${d.productoNombre}">Producto</td>
+                            <td th:text="${d.cantidad}" style="text-align:center;">1</td>
+                            <td style="text-align:right; color:#93c5fd;">
+                                S/. <span th:text="${#numbers.formatDecimal(d.precio,1,2)}">0.00</span>
+                            </td>
+                            <td style="text-align:right; font-weight:700;">
+                                S/. <span th:text="${#numbers.formatDecimal(d.subtotal,1,2)}">0.00</span>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(v.detalles)}">
+                            <td colspan="5" style="text-align:center; color:#64748b; padding:16px;">Sin productos</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- TOTAL -->
+            <div class="nota-total">
+                <span class="total-label">Total a pagar</span>
+                <span class="total-amount">
+                    S/. <span th:text="${#numbers.formatDecimal(v.total,1,2)}">0.00</span>
+                </span>
+            </div>
+
+            <!-- FOOTER BOTONES -->
+            <div class="nota-footer">
+                <button class="btn-imprimir"
+                        style="background:linear-gradient(135deg,#0ea5e9,#0284c7);"
+                        th:attr="onclick=|abrirEnviarCorreo(${v.id})|">
+                    <i class="fa-solid fa-envelope"></i> Enviar Correo
+                </button>
+                <button class="btn-imprimir" th:attr="onclick=|abrirImprimir(${v.id})|">
+                    <i class="fa-solid fa-print"></i> Imprimir Nota
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<script>
+function filtrar(valor) {
+    const v = valor.toLowerCase();
+    let visibles = 0;
+    document.querySelectorAll('.nota-card').forEach(card => {
+        const texto = (card.getAttribute('data-search') || '').toLowerCase();
+        const mostrar = texto.includes(v);
+        card.style.display = mostrar ? '' : 'none';
+        if (mostrar) visibles++;
+    });
+    document.getElementById('contador').textContent = visibles + ' notas encontradas';
+}
+</script>
+
+<!-- MODAL IMPRESIÓN -->
+<div class="modal fade" id="modalImprimir" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content" style="background:#0f172a;border:1px solid rgba(255,255,255,.1);border-radius:20px;overflow:hidden;">
+            <div class="modal-header" style="background:linear-gradient(135deg,#0f172a,#1e293b);border-bottom:1px solid rgba(255,255,255,.08);padding:16px 24px;">
+                <h5 class="modal-title" style="color:white;font-weight:800;display:flex;align-items:center;gap:10px;">
+                    <i class="fa-solid fa-print" style="color:#3b82f6;"></i> Vista de Impresión
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" style="padding:0;background:#f0f4f8;">
+                <iframe id="notaIframe" src="" style="width:100%;height:75vh;border:none;display:block;"></iframe>
+            </div>
+            <div class="modal-footer" style="background:#0f172a;border-top:1px solid rgba(255,255,255,.08);padding:14px 24px;justify-content:flex-end;gap:10px;">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                        style="border-radius:12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);color:#94a3b8;">
+                    <i class="fa-solid fa-xmark"></i> Cerrar
+                </button>
+                <button type="button" onclick="imprimirIframe()"
+                        style="border:none;padding:10px 22px;border-radius:12px;background:linear-gradient(135deg,#2563eb,#7c3aed);color:white;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;">
+                    <i class="fa-solid fa-print"></i> Imprimir
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL ENVIAR CORREO -->
+<div class="modal fade" id="modalCorreo" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background:#111827;color:white;border:1px solid rgba(255,255,255,.1);border-radius:20px;">
+            <div class="modal-header" style="border-bottom:1px solid rgba(255,255,255,.1);">
+                <h5 class="modal-title"><i class="fa-solid fa-envelope" style="color:#38bdf8;"></i> &nbsp;Enviar Comprobante</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" style="padding:24px;">
+                <label style="font-size:13px;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;">
+                    Correo del cliente
+                </label>
+                <input type="email" id="correoDestino" placeholder="ejemplo@correo.com"
+                       class="form-control mt-2"
+                       style="background:#1e293b;border:1px solid rgba(255,255,255,.15);color:white;border-radius:12px;padding:12px;">
+                <div id="correoError" style="color:#f87171;font-size:12px;margin-top:6px;display:none;">
+                    Ingresa un correo electrónico válido.
+                </div>
+            </div>
+            <div class="modal-footer" style="border-top:1px solid rgba(255,255,255,.1);">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" id="btnEnviarCorreo"
+                        onclick="confirmarEnvioCorreo()"
+                        style="background:linear-gradient(135deg,#0ea5e9,#0284c7);border:none;border-radius:12px;padding:10px 20px;color:white;font-weight:700;cursor:pointer;">
+                    <i class="fa-solid fa-paper-plane"></i> Enviar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+const modalImprimir = new bootstrap.Modal(document.getElementById('modalImprimir'));
+const modalCorreo   = new bootstrap.Modal(document.getElementById('modalCorreo'));
+
+let ventaIdCorreo = null;
+
+function abrirImprimir(id) {
+    const iframe = document.getElementById('notaIframe');
+    iframe.src = '/notas-venta/' + id + '/imprimir';
+    modalImprimir.show();
+}
+
+function imprimirIframe() {
+    document.getElementById('notaIframe').contentWindow.print();
+}
+
+document.getElementById('modalImprimir').addEventListener('hidden.bs.modal', function () {
+    document.getElementById('notaIframe').src = '';
+});
+
+// ── Enviar correo ───────────────────────────────────────────────────────
+function abrirEnviarCorreo(id) {
+    ventaIdCorreo = id;
+    document.getElementById('correoDestino').value = '';
+    document.getElementById('correoError').style.display = 'none';
+    modalCorreo.show();
+}
+
+async function confirmarEnvioCorreo() {
+    const correo = document.getElementById('correoDestino').value.trim();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(correo)) {
+        document.getElementById('correoError').style.display = 'block';
+        return;
+    }
+    document.getElementById('correoError').style.display = 'none';
+
+    const btn = document.getElementById('btnEnviarCorreo');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando...';
+
+    try {
+        const fd = new FormData();
+        fd.append('correo', correo);
+        const res  = await fetch('/notas-venta/' + ventaIdCorreo + '/enviar-correo', { method: 'POST', body: fd });
+        const data = await res.json();
+
+        modalCorreo.hide();
+        if (data.ok) {
+            Swal.fire({ icon:'success', title:'¡Enviado!', text: data.msg, confirmButtonColor:'#6366f1', timer:3000, showConfirmButton:false });
+        } else {
+            Swal.fire({ icon:'error', title:'Error al enviar', text: data.msg, confirmButtonColor:'#6366f1' });
+        }
+    } catch(e) {
+        modalCorreo.hide();
+        Swal.fire({ icon:'error', title:'Error de conexión', text:'No se pudo conectar con el servidor.', confirmButtonColor:'#6366f1' });
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Enviar';
+    }
+}
+</script>
+<script src="/js/main.js"></script>
+</body>
+</html>

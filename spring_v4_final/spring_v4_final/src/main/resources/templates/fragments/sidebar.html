@@ -1,0 +1,354 @@
+<th:block th:fragment="sidebar" xmlns:th="http://www.thymeleaf.org"
+          xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<style>
+/* ===== SIDEBAR ===== */
+.sidebar{
+    width:255px; height:100vh; position:fixed; left:0; top:0; z-index:1000;
+    background:rgba(10,15,35,.92); backdrop-filter:blur(20px);
+    border-right:1px solid rgba(255,255,255,.08);
+    padding:18px 14px; display:flex; flex-direction:column; gap:4px;
+    box-shadow:0 0 30px rgba(59,130,246,.15);
+    transition:width .3s cubic-bezier(.4,0,.2,1);
+    overflow:hidden;
+}
+.sidebar.collapsed{ width:68px; }
+
+/* TOGGLE BTN */
+.sidebar-toggle{
+    position:fixed; top:14px; left:241px; z-index:1002;
+    width:28px; height:28px; border-radius:50%;
+    background:linear-gradient(135deg,#2563eb,#7c3aed);
+    border:2px solid rgba(255,255,255,.15);
+    color:white; cursor:pointer; display:flex;
+    align-items:center; justify-content:center;
+    font-size:11px;
+    transition:left .3s cubic-bezier(.4,0,.2,1), box-shadow .3s, transform .3s;
+    box-shadow:0 4px 12px rgba(37,99,235,.4);
+}
+.sidebar-toggle:hover{ transform:scale(1.15); box-shadow:0 6px 18px rgba(37,99,235,.5); }
+.sidebar-collapsed-mode .sidebar-toggle{ left:54px; }
+
+/* LOGO */
+.sidebar-logo-area{
+    margin-bottom:8px; padding-bottom:12px;
+    border-bottom:1px solid rgba(255,255,255,.07);
+    min-height:60px; display:flex; align-items:center;
+    overflow:hidden; transition:.3s;
+}
+.sidebar-logo-area img{
+    width:190px; max-height:85px; object-fit:contain;
+    border-radius:12px; display:block; transition:.3s;
+}
+.sidebar.collapsed .sidebar-logo-area img{ width:40px; height:40px; border-radius:10px; }
+.logo-text-sidebar{
+    font-size:18px; font-weight:800; color:white; white-space:nowrap;
+    text-shadow:0 0 8px #3b82f6,0 0 16px #8b5cf6;
+    display:flex; align-items:center; gap:8px;
+}
+.sidebar.collapsed .logo-text-sidebar span.txt{ display:none; }
+
+/* LINKS */
+.sidebar a{
+    display:flex; align-items:center; gap:12px; color:#cbd5e1;
+    text-decoration:none; padding:11px 14px; border-radius:14px;
+    transition:.25s; font-size:14px; white-space:nowrap;
+    background:rgba(255,255,255,.03); border:1px solid transparent;
+    position:relative; overflow:hidden;
+}
+.sidebar a .nav-icon{ font-size:16px; min-width:20px; text-align:center; flex-shrink:0; }
+.sidebar a .nav-label{ transition:opacity .2s; }
+.sidebar.collapsed a .nav-label{ opacity:0; width:0; overflow:hidden; }
+.sidebar.collapsed a{ padding:11px; justify-content:center; }
+.sidebar a:hover{
+    background:linear-gradient(135deg,rgba(59,130,246,.22),rgba(124,58,237,.22));
+    border:1px solid rgba(255,255,255,.08); color:white;
+    transform:translateX(4px);
+}
+.sidebar.collapsed a:hover{ transform:translateX(0) scale(1.08); }
+.sidebar a.active{
+    background:linear-gradient(135deg,rgba(59,130,246,.32),rgba(124,58,237,.32));
+    border:1px solid rgba(255,255,255,.12); color:white;
+    box-shadow:0 4px 15px rgba(59,130,246,.2);
+}
+
+/* TOOLTIP en modo colapsado */
+.sidebar.collapsed a::after{
+    content: attr(data-label);
+    position:absolute; left:68px; top:50%; transform:translateY(-50%);
+    background:rgba(15,23,42,.95); color:white; padding:5px 12px;
+    border-radius:8px; font-size:12px; white-space:nowrap;
+    border:1px solid rgba(255,255,255,.1);
+    opacity:0; pointer-events:none; transition:.2s;
+    box-shadow:0 4px 12px rgba(0,0,0,.4);
+}
+.sidebar.collapsed a:hover::after{ opacity:1; }
+
+/* SEPARADOR */
+.nav-separator{
+    height:1px; background:rgba(255,255,255,.07);
+    margin:6px 0; flex-shrink:0;
+}
+
+/* LOGOUT */
+.sidebar-logout-btn{
+    width:100%; border:none; padding:11px 14px; border-radius:14px;
+    background:linear-gradient(135deg,#ef4444,#dc2626);
+    color:white; font-weight:700; cursor:pointer; transition:.3s;
+    display:flex; align-items:center; gap:12px; font-size:14px;
+    white-space:nowrap; margin-top:auto; overflow:hidden;
+}
+.sidebar-logout-btn:hover{ transform:translateY(-2px); box-shadow:0 8px 20px rgba(239,68,68,.3); }
+.sidebar.collapsed .sidebar-logout-btn{ padding:11px; justify-content:center; }
+.sidebar.collapsed .sidebar-logout-btn .nav-label{ opacity:0; width:0; overflow:hidden; }
+
+/* MAIN AJUSTE */
+.main{ margin-left:270px; padding:30px; transition:margin-left .3s cubic-bezier(.4,0,.2,1); }
+.sidebar-collapsed-mode .main{ margin-left:84px; }
+
+/* ===== HAMBURGER MOBILE ===== */
+.mobile-menu-btn{
+    display:none; position:fixed; top:14px; left:14px; z-index:1003;
+    width:42px; height:42px; border-radius:12px;
+    background:linear-gradient(135deg,#2563eb,#7c3aed);
+    border:none; color:white; cursor:pointer; font-size:16px;
+    align-items:center; justify-content:center;
+    box-shadow:0 4px 14px rgba(37,99,235,.4); transition:.25s;
+}
+.mobile-menu-btn:hover{ transform:scale(1.08); }
+.sidebar-overlay{
+    display:none; position:fixed; inset:0;
+    background:rgba(0,0,0,.6); z-index:999; backdrop-filter:blur(3px);
+}
+.sidebar-overlay.active{ display:block; }
+
+/* ===== BREAKPOINTS ADMIN ===== */
+@media(max-width:768px){
+    .sidebar{ transform:translateX(-280px) !important; width:255px !important;
+        transition:transform .3s cubic-bezier(.4,0,.2,1) !important; }
+    .sidebar.mobile-open{ transform:translateX(0) !important; }
+    .sidebar-toggle{ display:none !important; }
+    .mobile-menu-btn{ display:flex; }
+    .main{ margin-left:0 !important; padding:16px !important; padding-top:70px !important; }
+    .sidebar-collapsed-mode .main{ margin-left:0 !important; }
+    /* Topbar apilado */
+    .topbar{ flex-direction:column !important; align-items:flex-start !important; gap:14px !important; }
+    .topbar h2, .topbar h1{ font-size:24px !important; }
+    /* Tablas con scroll horizontal */
+    .section-card, .card, .table-card, .card-modern, .contenedor{ overflow-x:auto !important; }
+    /* Buscadores full width */
+    .search-bar, .search-box{ width:100% !important; }
+    /* Botones acción full width en topbar */
+    .topbar .btn-nuevo, .topbar .btn-modern{ width:100%; justify-content:center; }
+}
+@media(max-width:480px){
+    .main{ padding:12px !important; padding-top:66px !important; }
+    .topbar h2, .topbar h1{ font-size:20px !important; }
+}
+</style>
+
+<div class="sidebar" id="appSidebar">
+
+    <!-- LOGO -->
+    <div class="sidebar-logo-area" id="sidebarLogoArea">
+        <div class="logo-text-sidebar" id="sidebarLogoDefault">
+            <i class="fa-solid fa-layer-group"></i>
+            <span class="txt">Inventario</span>
+        </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <a sec:authorize="hasAuthority('DASHBOARD')"
+       th:href="@{/}" data-label="Dashboard">
+        <i class="fa-solid fa-chart-line nav-icon"></i>
+        <span class="nav-label">Dashboard</span>
+    </a>
+
+    <!-- PRODUCTOS -->
+    <a sec:authorize="hasAuthority('PRODUCTOS')"
+       th:href="@{/productos}" data-label="Productos">
+        <i class="fa-solid fa-box nav-icon"></i>
+        <span class="nav-label">Productos</span>
+    </a>
+
+    <!-- CATEGORÍAS -->
+    <a sec:authorize="hasAuthority('CATEGORIAS')"
+       th:href="@{/categorias}" data-label="Categorías">
+        <i class="fa-solid fa-tags nav-icon"></i>
+        <span class="nav-label">Categorías</span>
+    </a>
+
+    <!-- PROVEEDORES -->
+    <a sec:authorize="hasAuthority('PROVEEDORES')"
+       th:href="@{/proveedores}" data-label="Proveedores">
+        <i class="fa-solid fa-truck nav-icon"></i>
+        <span class="nav-label">Proveedores</span>
+    </a>
+
+    <div class="nav-separator"></div>
+
+    <!-- CLIENTES -->
+    <a sec:authorize="hasAuthority('CLIENTES')"
+       th:href="@{/clientes}" data-label="Clientes">
+        <i class="fa-solid fa-users nav-icon"></i>
+        <span class="nav-label">Clientes</span>
+    </a>
+
+    <!-- VENTAS -->
+    <a sec:authorize="hasAuthority('VENTAS')"
+       th:href="@{/ventas}" data-label="Ventas">
+        <i class="fa-solid fa-cash-register nav-icon"></i>
+        <span class="nav-label">Ventas</span>
+    </a>
+
+    <!-- NOTAS DE VENTA -->
+    <a sec:authorize="hasAuthority('VENTAS')"
+       th:href="@{/notas-venta}" data-label="Notas de Venta">
+        <i class="fa-solid fa-file-invoice nav-icon"></i>
+        <span class="nav-label">Notas de Venta</span>
+    </a>
+
+    <!-- VERIFICACIÓN DE PAGOS -->
+    <a sec:authorize="hasAuthority('VENTAS')"
+       th:href="@{/verificacion-pagos}" data-label="Verificación de Pagos"
+       id="linkVerifPagos" style="position:relative;">
+        <i class="fa-solid fa-clipboard-check nav-icon"></i>
+        <span class="nav-label">Verificación Pagos</span>
+        <span id="badgeVerif" style="display:none;position:absolute;top:6px;right:8px;
+              min-width:18px;height:18px;border-radius:9px;background:#ef4444;
+              color:white;font-size:10px;font-weight:800;line-height:18px;
+              text-align:center;padding:0 4px;"></span>
+    </a>
+
+    <!-- REPORTES -->
+    <a sec:authorize="hasAuthority('VENTAS')"
+       th:href="@{/reportes}" data-label="Reportes">
+        <i class="fa-solid fa-chart-pie nav-icon"></i>
+        <span class="nav-label">Reportes</span>
+    </a>
+
+    <div class="nav-separator"></div>
+
+    <!-- USUARIOS -->
+    <a sec:authorize="hasAuthority('USUARIOS')"
+       th:href="@{/usuarios}" data-label="Usuarios">
+        <i class="fa-solid fa-user-gear nav-icon"></i>
+        <span class="nav-label">Usuarios</span>
+    </a>
+
+    <!-- ROLES -->
+    <a sec:authorize="hasAuthority('PERFILES')"
+       th:href="@{/roles}" data-label="Perfiles">
+        <i class="fa-solid fa-shield-halved nav-icon"></i>
+        <span class="nav-label">Perfiles</span>
+    </a>
+
+    <!-- MOVIMIENTOS -->
+    <a sec:authorize="hasAuthority('MOVIMIENTOS')"
+       th:href="@{/movimientos}" data-label="Movimientos">
+        <i class="fa-solid fa-right-left nav-icon"></i>
+        <span class="nav-label">Movimientos</span>
+    </a>
+
+    <div class="nav-separator"></div>
+
+    <!-- SLIDER & LOGO -->
+    <a sec:authorize="hasAuthority('SLIDER_LOGO')"
+       th:href="@{/slider-logo}" data-label="Slider &amp; Logo">
+        <i class="fa-solid fa-images nav-icon"></i>
+        <span class="nav-label">Slider &amp; Logo</span>
+    </a>
+
+    <!-- CATÁLOGO -->
+    <a th:href="@{/catalogo}" target="_blank"
+       style="border:1px solid rgba(99,202,183,0.25);color:#63cab7;"
+       data-label="Ver Catálogo">
+        <i class="fa-solid fa-store nav-icon"></i>
+        <span class="nav-label">Ver Catálogo</span>
+    </a>
+
+    <!-- LOGOUT -->
+    <form th:action="@{/logout}" method="post" style="margin-top:auto;">
+        <button type="submit" class="sidebar-logout-btn">
+            <i class="fa-solid fa-right-from-bracket nav-icon"></i>
+            <span class="nav-label">Cerrar Sesión</span>
+        </button>
+    </form>
+</div>
+
+<!-- BOTÓN TOGGLE (fuera del sidebar para evitar overflow:hidden) -->
+<button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()" title="Ocultar/Mostrar menú">
+    <i class="fa-solid fa-chevron-left" id="toggleIcon"></i>
+</button>
+
+<!-- HAMBURGER MOBILE -->
+<button class="mobile-menu-btn" id="mobileMenuBtn" onclick="toggleMobileSidebar()">
+    <i class="fa-solid fa-bars"></i>
+</button>
+<!-- OVERLAY MOBILE -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeMobileSidebar()"></div>
+
+<script>
+(function(){
+    // Cargar logo dinámico
+    fetch('/slider-logo/api/logos')
+        .then(r => r.json())
+        .then(logos => {
+            if (logos && logos.length > 0) {
+                const area = document.getElementById('sidebarLogoArea');
+                if (area) area.innerHTML = '<img src="' + logos[0].ruta + '" alt="Logo">';
+            }
+        }).catch(()=>{});
+
+    // Restaurar estado del sidebar
+    const collapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+    if (collapsed) applySidebarState(true, false);
+
+    // Badge pendientes verificación
+    fetch('/verificacion-pagos/pendientes-count')
+        .then(r => r.json())
+        .then(d => {
+            const badge = document.getElementById('badgeVerif');
+            if (badge && d.count > 0) {
+                badge.textContent = d.count;
+                badge.style.display = 'inline-block';
+            }
+        }).catch(()=>{});
+})();
+
+function toggleSidebar() {
+    const collapsed = !document.getElementById('appSidebar').classList.contains('collapsed');
+    applySidebarState(collapsed, true);
+    localStorage.setItem('sidebarCollapsed', collapsed);
+}
+
+function toggleMobileSidebar() {
+    document.getElementById('appSidebar').classList.toggle('mobile-open');
+    document.getElementById('sidebarOverlay').classList.toggle('active');
+}
+function closeMobileSidebar() {
+    document.getElementById('appSidebar').classList.remove('mobile-open');
+    document.getElementById('sidebarOverlay').classList.remove('active');
+}
+document.querySelectorAll('#appSidebar a, #appSidebar button[type="submit"]').forEach(el => {
+    el.addEventListener('click', () => { if(window.innerWidth <= 768) closeMobileSidebar(); });
+});
+
+function applySidebarState(collapsed, animate) {
+    const sidebar = document.getElementById('appSidebar');
+    const icon    = document.getElementById('toggleIcon');
+    const body    = document.body;
+
+    if (collapsed) {
+        sidebar.classList.add('collapsed');
+        body.classList.add('sidebar-collapsed-mode');
+        if (icon) { icon.classList.remove('fa-chevron-left'); icon.classList.add('fa-chevron-right'); }
+    } else {
+        sidebar.classList.remove('collapsed');
+        body.classList.remove('sidebar-collapsed-mode');
+        if (icon) { icon.classList.remove('fa-chevron-right'); icon.classList.add('fa-chevron-left'); }
+    }
+}
+</script>
+
+</th:block>

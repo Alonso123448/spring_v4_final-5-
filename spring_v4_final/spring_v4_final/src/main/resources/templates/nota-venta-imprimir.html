@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${(#strings.contains(venta.serie,'BOLETA') ? 'Boleta' : (#strings.contains(venta.serie,'FACTURA') ? 'Factura' : 'Nota de Venta')) + ' ' + (venta.numeroDocumento ?: '#' + venta.id)}">Comprobante</title>
+    <style>
+        *{ margin:0; padding:0; box-sizing:border-box; }
+
+        body{
+            font-family:'Segoe UI', Arial, sans-serif;
+            background:#f0f4f8;
+            color:#0f172a;
+            min-height:100vh;
+            display:flex;
+            align-items:flex-start;
+            justify-content:center;
+            padding:30px 16px;
+        }
+
+        /* ===== HOJA ===== */
+        .nota{
+            background:white;
+            width:100%;
+            max-width:720px;
+            border-radius:18px;
+            overflow:hidden;
+            box-shadow:0 8px 40px rgba(0,0,0,.15);
+        }
+
+        /* ===== HEADER EMPRESA ===== */
+        .nota-header{
+            background:linear-gradient(135deg,#0f172a,#1e293b);
+            color:white;
+            padding:24px 28px;
+            display:flex;
+            justify-content:space-between;
+            align-items:flex-start;
+        }
+        .empresa-info{ display:flex; align-items:center; gap:16px; }
+        .empresa-logo{
+            width:56px; height:56px; border-radius:14px;
+            background:linear-gradient(135deg,#2563eb,#7c3aed);
+            display:flex; align-items:center; justify-content:center;
+            font-size:24px; color:white; overflow:hidden;
+        }
+        .empresa-logo img{ width:100%; height:100%; object-fit:contain; border-radius:12px; }
+        .empresa-nombre h2{ font-size:22px; font-weight:900; letter-spacing:.5px; }
+        .empresa-nombre p{ color:#94a3b8; font-size:12px; letter-spacing:2px; text-transform:uppercase; margin-top:2px; }
+
+        .nota-numero{ text-align:right; }
+        .nota-numero small{ color:#94a3b8; font-size:11px; letter-spacing:2px; text-transform:uppercase; }
+        .nota-numero h1{ font-size:42px; font-weight:900; color:white; line-height:1; }
+        .badge-tipo{
+            display:inline-block; margin-top:8px;
+            padding:4px 14px; border-radius:20px; font-size:12px; font-weight:700;
+            border:2px solid rgba(255,255,255,.3);
+        }
+        .badge-contado{ color:#6ee7b7; border-color:rgba(16,185,129,.5); }
+        .badge-credito{ color:#c4b5fd; border-color:rgba(124,58,237,.5); }
+
+        /* ===== BARRA ESTADO ===== */
+        .estado-bar{
+            padding:12px 28px;
+            font-size:13px; font-weight:700; letter-spacing:2px; text-transform:uppercase;
+            display:flex; align-items:center; gap:10px;
+        }
+        .estado-completada{ background:#10b981; color:white; }
+        .estado-pendiente { background:#f59e0b; color:white; }
+        .estado-anulada   { background:#ef4444; color:white; }
+
+        /* ===== CUERPO ===== */
+        .nota-body{ padding:24px 28px; }
+
+        /* SECCIÓN */
+        .seccion-titulo{
+            font-size:11px; font-weight:700; color:#64748b;
+            letter-spacing:2px; text-transform:uppercase;
+            margin-bottom:14px; padding-bottom:8px;
+            border-bottom:1px solid #e2e8f0;
+            display:flex; align-items:center; gap:8px;
+        }
+
+        /* GRID CLIENTE */
+        .cliente-grid{
+            display:grid;
+            grid-template-columns:repeat(3,1fr);
+            gap:12px;
+            margin-bottom:28px;
+        }
+        .campo{
+            background:#f8fafc;
+            border:1px solid #e2e8f0;
+            border-radius:10px;
+            padding:12px 14px;
+        }
+        .campo label{
+            font-size:10px; font-weight:700; color:#94a3b8;
+            letter-spacing:1px; text-transform:uppercase;
+            display:block; margin-bottom:4px;
+        }
+        .campo span{ font-size:14px; font-weight:700; color:#0f172a; }
+
+        /* TABLA PRODUCTOS */
+        .productos-tabla{
+            width:100%; border-collapse:collapse; margin-bottom:0;
+        }
+        .productos-tabla thead tr{ background:#0f172a; }
+        .productos-tabla thead th{
+            color:#93c5fd; font-size:11px; font-weight:700;
+            text-transform:uppercase; letter-spacing:1px; padding:12px 14px;
+        }
+        .productos-tabla thead th:first-child{ border-radius:10px 0 0 10px; }
+        .productos-tabla thead th:last-child{ border-radius:0 10px 10px 0; }
+        .productos-tabla tbody tr{ border-bottom:1px solid #f1f5f9; }
+        .productos-tabla tbody tr:last-child{ border-bottom:none; }
+        .productos-tabla tbody td{
+            padding:12px 14px; font-size:14px; color:#334155;
+        }
+        .td-precio{ color:#2563eb; font-weight:700; }
+        .td-sub{ font-weight:700; color:#0f172a; }
+
+        /* TOTAL */
+        .nota-total{
+            background:linear-gradient(135deg,#0f172a,#1e293b);
+            margin:0 -28px;
+            margin-top:20px;
+            padding:18px 28px;
+            display:flex; justify-content:flex-end; align-items:center; gap:20px;
+        }
+        .total-label{ color:#94a3b8; font-size:13px; font-weight:600; text-transform:uppercase; letter-spacing:1px; }
+        .total-monto{ font-size:32px; font-weight:900; color:#60a5fa; }
+
+        /* INFO CRÉDITO */
+        .credito-info{
+            background:#f0fdf4; border:1px solid #bbf7d0;
+            border-radius:12px; padding:14px 16px; margin-top:16px;
+            font-size:13px; color:#166534;
+        }
+        .credito-info strong{ display:block; margin-bottom:6px; }
+
+        /* FOOTER */
+        .nota-footer{
+            background:#f8fafc; border-top:1px solid #e2e8f0;
+            padding:14px 28px;
+            display:flex; justify-content:space-between; align-items:center;
+            font-size:12px; color:#94a3b8;
+        }
+
+        /* BOTÓN IMPRIMIR (no se imprime) */
+        .btn-print{
+            position:fixed; bottom:30px; right:30px;
+            background:linear-gradient(135deg,#2563eb,#7c3aed);
+            color:white; border:none; border-radius:16px;
+            padding:14px 24px; font-size:15px; font-weight:700;
+            cursor:pointer; box-shadow:0 8px 24px rgba(37,99,235,.4);
+            display:flex; align-items:center; gap:10px; transition:.3s;
+            z-index:100;
+        }
+        .btn-print:hover{ transform:translateY(-3px); box-shadow:0 12px 30px rgba(37,99,235,.5); }
+        .btn-back{
+            position:fixed; bottom:30px; left:30px;
+            background:rgba(255,255,255,.9); color:#0f172a; border:1px solid #e2e8f0;
+            border-radius:16px; padding:14px 24px; font-size:15px; font-weight:700;
+            cursor:pointer; box-shadow:0 4px 14px rgba(0,0,0,.1);
+            display:flex; align-items:center; gap:10px; text-decoration:none; transition:.3s;
+        }
+        .btn-back:hover{ background:white; color:#0f172a; }
+
+        /* ===== PRINT ===== */
+        @media print{
+            body{ background:white; padding:0; }
+            .nota{ box-shadow:none; border-radius:0; max-width:100%; }
+            .btn-print, .btn-back{ display:none !important; }
+            .nota-total{ margin:0; margin-top:20px; }
+        }
+
+        @media(max-width:600px){
+            .cliente-grid{ grid-template-columns:1fr 1fr; }
+            .nota-header{ flex-direction:column; gap:16px; }
+            .nota-numero{ text-align:left; }
+        }
+        @media(max-width:400px){
+            .cliente-grid{ grid-template-columns:1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="nota">
+
+    <!-- HEADER -->
+    <div class="nota-header">
+        <div class="empresa-info">
+            <div class="empresa-logo">
+                <img th:if="${logoActivo != null}" th:src="${logoActivo.ruta}" alt="Logo">
+                <i th:if="${logoActivo == null}" class="fa-solid fa-layer-group"
+                   style="font-family:sans-serif;">&#9776;</i>
+            </div>
+            <div class="empresa-nombre">
+                <h2 th:text="${appNombre}">Inventario</h2>
+                <p th:text="${appRubro}">Sistema de Gestión</p>
+            </div>
+        </div>
+        <div class="nota-numero">
+            <small th:if="${#strings.contains(venta.serie, 'BOLETA')}">Boleta de Venta</small>
+            <small th:if="${#strings.contains(venta.serie, 'FACTURA')}">Factura</small>
+            <small th:if="${#strings.contains(venta.serie, 'NOTA')}">Nota de Venta</small>
+            <small th:if="${venta.serie == null}">Comprobante</small>
+            <h1 th:text="${venta.numeroDocumento ?: '#' + venta.id}">#1</h1>
+            <span th:if="${venta.esCredito}"  class="badge-tipo badge-credito">CRÉDITO</span>
+            <span th:unless="${venta.esCredito}" class="badge-tipo badge-contado">CONTADO</span>
+        </div>
+    </div>
+
+    <!-- BARRA ESTADO -->
+    <div th:switch="${venta.estado}">
+        <div th:case="'COMPLETADA'" class="estado-bar estado-completada">
+            &#10003; &nbsp; VENTA APROBADA
+        </div>
+        <div th:case="'PENDIENTE'" class="estado-bar estado-pendiente">
+            &#9656; &nbsp; VENTA PENDIENTE
+        </div>
+        <div th:case="'ANULADA'" class="estado-bar estado-anulada">
+            &#10005; &nbsp; VENTA ANULADA
+        </div>
+        <div th:case="*" class="estado-bar estado-pendiente"
+             th:text="venta.estado ?: 'SIN ESTADO'">ESTADO</div>
+    </div>
+
+    <!-- CUERPO -->
+    <div class="nota-body">
+
+        <!-- DATOS DEL CLIENTE -->
+        <div class="seccion-titulo">
+            &#128100; &nbsp; Datos del Cliente
+        </div>
+
+        <div class="cliente-grid">
+            <div class="campo">
+                <label>Cliente</label>
+                <span th:text="${venta.clienteNombre ?: 'Sin nombre'}">-</span>
+            </div>
+            <div class="campo">
+                <label th:text="${venta.clienteDocumento != null and #strings.length(venta.clienteDocumento) == 11 ? 'RUC' : 'DNI'}">DNI</label>
+                <span th:text="${venta.clienteDocumento ?: '-'}">-</span>
+            </div>
+            <div class="campo">
+                <label>Teléfono</label>
+                <span th:text="${cliente != null and cliente.telefono != null ? cliente.telefono : (venta.clienteTelefono != null and !#strings.isEmpty(venta.clienteTelefono) ? venta.clienteTelefono : '-')}">-</span>
+            </div>
+            <div class="campo">
+                <label>Fecha</label>
+                <span th:text="${venta.fecha != null ? #temporals.format(venta.fecha,'dd/MM/yyyy') : '-'}">-</span>
+            </div>
+            <div class="campo">
+                <label>Hora</label>
+                <span th:text="${venta.fecha != null ? #temporals.format(venta.fecha,'HH:mm') : '-'}">-</span>
+            </div>
+            <div class="campo">
+                <label>Estado</label>
+                <span style="color:#10b981; font-weight:800;"
+                      th:text="${venta.estado ?: '-'}">-</span>
+            </div>
+        </div>
+
+        <!-- DETALLE DE PRODUCTOS -->
+        <div class="seccion-titulo">
+            &#9776; &nbsp; Detalle de Productos
+        </div>
+
+        <table class="productos-tabla">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Producto</th>
+                    <th style="text-align:center;">Cant.</th>
+                    <th style="text-align:right;">P. Unit.</th>
+                    <th style="text-align:right;">Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="d,i : ${venta.detalles}">
+                    <td style="color:#94a3b8;" th:text="${i.count}">1</td>
+                    <td th:text="${d.productoNombre}">Producto</td>
+                    <td style="text-align:center;" th:text="${d.cantidad}">1</td>
+                    <td class="td-precio" style="text-align:right;">
+                        S/. <span th:text="${#numbers.formatDecimal(d.precio,1,2)}">0.00</span>
+                    </td>
+                    <td class="td-sub" style="text-align:right;">
+                        S/. <span th:text="${#numbers.formatDecimal(d.subtotal,1,2)}">0.00</span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- INFO CRÉDITO -->
+        <div th:if="${venta.esCredito}" class="credito-info">
+            <strong>Información de crédito</strong>
+            Pago inicial:
+            S/. <span th:text="${venta.pagoInicial != null ? #numbers.formatDecimal(venta.pagoInicial,1,2) : '0.00'}">0.00</span>
+            &nbsp;|&nbsp;
+            Cuotas: <span th:text="${venta.nCuotas ?: '-'}">-</span>
+            &nbsp;|&nbsp;
+            Intervalo: <span th:text="${venta.intervaloPago ?: '-'}">-</span>
+            &nbsp;|&nbsp;
+            Deuda pendiente: S/.
+            <span th:text="${venta.deuda != null ? #numbers.formatDecimal(venta.deuda,1,2) : '0.00'}">0.00</span>
+        </div>
+
+        <!-- TOTAL -->
+        <div class="nota-total">
+            <span class="total-label">Total</span>
+            <span class="total-monto">
+                S/. <span th:text="${#numbers.formatDecimal(venta.total,1,2)}">0.00</span>
+            </span>
+        </div>
+
+    </div><!-- /nota-body -->
+
+    <!-- FOOTER -->
+    <div class="nota-footer">
+        <span>
+            Documento generado por
+            <strong th:text="${appNombre}">Inventario</strong>
+            &middot;
+            <span th:text="${venta.fecha != null ? #temporals.format(venta.fecha,'dd/MM/yyyy HH:mm') : ''}"></span>
+        </span>
+        <span>Gracias por su compra &#10084;</span>
+    </div>
+
+</div>
+
+<!-- BOTONES FLOTANTES (solo visibles si se abre en pestaña directa) -->
+<button class="btn-print" id="btnPrint" onclick="window.print()">
+    &#128438; Imprimir
+</button>
+<a class="btn-back" id="btnBack" href="javascript:window.close()">
+    &#10005; Cerrar
+</a>
+
+<script>
+    // Si está dentro de un iframe (modal), ocultar botones flotantes
+    if (window.self !== window.top) {
+        document.getElementById('btnPrint').style.display = 'none';
+        document.getElementById('btnBack').style.display  = 'none';
+    }
+</script>
+
+</body>
+</html>

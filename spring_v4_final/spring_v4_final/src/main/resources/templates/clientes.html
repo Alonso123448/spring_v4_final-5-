@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clientes - Inventario</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
+    <style>
+        *{ margin:0; padding:0; box-sizing:border-box; }
+        body{
+            background:
+                radial-gradient(circle at top left,#1e3a8a 0%,transparent 25%),
+                radial-gradient(circle at bottom right,#7c3aed 0%,transparent 25%),
+                #0f172a;
+            font-family:'Segoe UI',sans-serif;
+            color:white;
+            min-height:100vh;
+        }
+        /* MAIN */
+        .main{ margin-left:270px; padding:30px; }
+        .topbar{ display:flex; justify-content:space-between; align-items:center; margin-bottom:30px; }
+        .topbar h2{ font-size:34px; font-weight:800;
+            text-shadow:0 0 10px rgba(59,130,246,.7),0 0 20px rgba(124,58,237,.5); }
+        /* CARD */
+        .section-card{
+            background:rgba(255,255,255,.06); backdrop-filter:blur(20px);
+            border-radius:24px; padding:28px; border:1px solid rgba(255,255,255,.08);
+            box-shadow:0 15px 40px rgba(0,0,0,.25);
+        }
+        /* TABLA */
+        .table-dark-custom{ width:100%; border-collapse:separate; border-spacing:0 8px; }
+        .table-dark-custom thead th{
+            color:#93c5fd; font-size:13px; font-weight:700; text-transform:uppercase;
+            letter-spacing:1px; padding:12px 16px; border-bottom:1px solid rgba(255,255,255,.08);
+        }
+        .table-dark-custom tbody tr{
+            background:rgba(255,255,255,.04); transition:.3s;
+        }
+        .table-dark-custom tbody tr:hover{ background:rgba(59,130,246,.1); }
+        .table-dark-custom tbody td{
+            padding:14px 16px; font-size:14px; color:#e2e8f0;
+            border-top:1px solid rgba(255,255,255,.05);
+            border-bottom:1px solid rgba(255,255,255,.05);
+        }
+        .table-dark-custom tbody td:first-child{ border-radius:14px 0 0 14px; border-left:1px solid rgba(255,255,255,.05); }
+        .table-dark-custom tbody td:last-child{ border-radius:0 14px 14px 0; border-right:1px solid rgba(255,255,255,.05); }
+        /* BADGES */
+        .badge-activo{ background:rgba(16,185,129,.2); color:#6ee7b7; padding:5px 14px; border-radius:20px; font-size:12px; font-weight:700; border:1px solid rgba(16,185,129,.3); }
+        .badge-inactivo{ background:rgba(239,68,68,.2); color:#fca5a5; padding:5px 14px; border-radius:20px; font-size:12px; font-weight:700; border:1px solid rgba(239,68,68,.3); }
+        .badge-dni{ background:rgba(59,130,246,.2); color:#93c5fd; padding:3px 10px; border-radius:10px; font-size:11px; font-weight:700; }
+        .badge-ruc{ background:rgba(124,58,237,.2); color:#c4b5fd; padding:3px 10px; border-radius:10px; font-size:11px; font-weight:700; }
+        /* BOTONES ACCION */
+        .btn-edit{ background:linear-gradient(135deg,#f59e0b,#d97706); border:none; color:white; padding:7px 12px; border-radius:10px; cursor:pointer; transition:.3s; }
+        .btn-edit:hover{ transform:translateY(-2px); box-shadow:0 6px 16px rgba(245,158,11,.3); }
+        .btn-del{ background:linear-gradient(135deg,#ef4444,#dc2626); border:none; color:white; padding:7px 12px; border-radius:10px; cursor:pointer; transition:.3s; }
+        .btn-del:hover{ transform:translateY(-2px); box-shadow:0 6px 16px rgba(239,68,68,.3); }
+        .btn-toggle{ background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.1); color:white; padding:7px 12px; border-radius:10px; cursor:pointer; transition:.3s; }
+        .btn-toggle:hover{ background:rgba(255,255,255,.15); }
+        /* BTN NUEVO */
+        .btn-nuevo{
+            border:none; padding:12px 22px; border-radius:14px;
+            background:linear-gradient(135deg,#2563eb,#7c3aed);
+            color:white; font-weight:700; cursor:pointer; transition:.35s;
+            display:flex; align-items:center; gap:8px; font-size:14px;
+        }
+        .btn-nuevo:hover{ transform:translateY(-3px); box-shadow:0 12px 30px rgba(99,130,246,.35); }
+        /* MODAL */
+        .modal-dark .modal-content{
+            background:#0f172a; border:1px solid rgba(255,255,255,.1);
+            border-radius:24px; color:white;
+        }
+        .modal-dark .modal-header{
+            border-bottom:1px solid rgba(255,255,255,.08);
+            padding:20px 24px;
+        }
+        .modal-dark .modal-title{ font-weight:800; font-size:20px; }
+        .modal-dark .modal-footer{ border-top:1px solid rgba(255,255,255,.08); }
+        .modal-dark .btn-close{ filter:invert(1); }
+        .form-label{ color:#cbd5e1; font-size:13px; font-weight:600; margin-bottom:6px; display:block; }
+        .form-control, .form-select{
+            background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.1);
+            color:white; border-radius:12px; padding:11px 14px;
+        }
+        .form-control:focus, .form-select:focus{
+            background:rgba(255,255,255,.12); border-color:#3b82f6;
+            color:white; box-shadow:0 0 0 3px rgba(59,130,246,.2); outline:none;
+        }
+        .form-control::placeholder{ color:#64748b; }
+        .btn-save{
+            border:none; padding:12px 22px; border-radius:14px;
+            background:linear-gradient(135deg,#2563eb,#7c3aed);
+            color:white; font-weight:700; cursor:pointer; transition:.35s;
+        }
+        .btn-save:hover{ transform:translateY(-2px); box-shadow:0 10px 25px rgba(99,130,246,.3); }
+        .btn-cancel{
+            border:1px solid rgba(255,255,255,.15); padding:12px 22px;
+            border-radius:14px; background:transparent;
+            color:#94a3b8; font-weight:600; cursor:pointer; transition:.3s;
+        }
+        .btn-cancel:hover{ background:rgba(255,255,255,.06); color:white; }
+        /* INPUT GROUP CONSULTA */
+        .input-consulta{ position:relative; }
+        .input-consulta input{ padding-right:46px; }
+        .btn-consultar{
+            position:absolute; right:6px; top:50%; transform:translateY(-50%);
+            background:linear-gradient(135deg,#2563eb,#7c3aed); border:none;
+            color:white; border-radius:9px; padding:6px 12px; cursor:pointer; transition:.3s;
+        }
+        .btn-consultar:hover{ box-shadow:0 4px 12px rgba(99,130,246,.4); }
+        .consulta-status{ font-size:12px; margin-top:5px; min-height:16px; }
+        .consulta-ok{ color:#6ee7b7; }
+        .consulta-err{ color:#fca5a5; }
+        .consulta-loading{ color:#93c5fd; }
+        .input-bloqueado{ background:rgba(255,255,255,.03) !important;
+            border-color:rgba(99,130,246,.3) !important; color:#94a3b8 !important;
+            cursor:not-allowed !important; }
+        /* SEARCH BAR */
+        .search-bar{
+            background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.1);
+            border-radius:14px; padding:10px 16px; color:white; width:260px;
+        }
+        .search-bar::placeholder{ color:#64748b; }
+        /* RESPONSIVE */
+        @media(max-width:768px){
+            .section-card{ padding:16px; }
+            .btn-nuevo{ width:100%; justify-content:center; }
+            .topbar{ margin-bottom:18px; }
+            .table-dark-custom thead th{ font-size:11px; padding:8px 10px; }
+            .table-dark-custom tbody td{ padding:10px; font-size:13px; }
+        }
+        .search-bar:focus{ outline:none; border-color:#3b82f6; box-shadow:0 0 0 3px rgba(59,130,246,.15); }
+        /* EMPTY */
+        .empty-row td{ text-align:center; padding:50px; color:#475569; }
+    </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<th:block th:replace="~{fragments/sidebar :: sidebar}"></th:block>
+
+<!-- MAIN -->
+<div class="main">
+
+    <div class="topbar">
+        <h2><i class="fa-solid fa-users"></i> Clientes</h2>
+        <button class="btn-nuevo" onclick="abrirModalNuevo()">
+            <i class="fa-solid fa-plus"></i> Nuevo Cliente
+        </button>
+    </div>
+
+    <!-- ALERTA -->
+    <div th:if="${success}" class="alert alert-success rounded-3 mb-3" style="background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.3);color:#6ee7b7;">
+        <i class="fa-solid fa-check-circle"></i> <span th:text="${success}"></span>
+    </div>
+
+    <div class="section-card">
+
+        <!-- BUSCADOR -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <span style="color:#93c5fd; font-weight:700; font-size:16px;">
+                    <i class="fa-solid fa-list"></i> Listado de Clientes
+                </span>
+                <span style="color:#64748b; font-size:13px; margin-left:10px;"
+                      th:text="'(' + ${#lists.size(clientes)} + ' registros)'"></span>
+            </div>
+            <input type="text" class="search-bar" id="buscarInput"
+                   placeholder="🔍  Buscar cliente..." oninput="filtrarTabla()">
+        </div>
+
+        <!-- TABLA -->
+        <table class="table-dark-custom" id="tablaClientes">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Documento</th>
+                    <th>Nombre</th>
+                    <th>Teléfono</th>
+                    <th>Correo</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:if="${#lists.isEmpty(clientes)}" class="empty-row">
+                    <td colspan="7">
+                        <i class="fa-solid fa-users" style="font-size:40px;color:#334155;display:block;margin-bottom:10px;"></i>
+                        No hay clientes registrados aún.
+                    </td>
+                </tr>
+                <tr th:each="c : ${clientes}">
+                    <td style="color:#64748b; font-size:13px;" th:text="${c.id}"></td>
+                    <td>
+                        <span th:if="${c.tipoDocumento == 'DNI'}" class="badge-dni">DNI</span>
+                        <span th:if="${c.tipoDocumento == 'RUC'}" class="badge-ruc">RUC</span>
+                        <span th:if="${c.tipoDocumento == null or c.tipoDocumento == ''}" class="badge-dni">DOC</span>
+                        <span style="margin-left:6px;" th:text="${c.documento}"></span>
+                    </td>
+                    <td style="font-weight:600;" th:text="${c.nombre}"></td>
+                    <td th:text="${c.telefono != null ? c.telefono : '-'}"></td>
+                    <td th:text="${c.correo != null ? c.correo : '-'}"></td>
+                    <td>
+                        <span th:if="${c.estado}" class="badge-activo">Activo</span>
+                        <span th:unless="${c.estado}" class="badge-inactivo">Inactivo</span>
+                    </td>
+                    <td>
+                        <button class="btn-edit me-1"
+                                th:attr="onclick=|abrirModalEditar(${c.id})|"
+                                title="Editar">
+                            <i class="fa-solid fa-pen"></i>
+                        </button>
+                        <button class="btn-toggle me-1"
+                                th:attr="onclick=|postAccion('/clientes/toggle/${c.id}')|"
+                                title="Activar/Desactivar">
+                            <i class="fa-solid fa-toggle-on"></i>
+                        </button>
+                        <button class="btn-del"
+                                th:attr="onclick=|confirmarEliminar(${c.id})|"
+                                title="Eliminar">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
+</div>
+
+<!-- ===================== MODAL NUEVO / EDITAR ===================== -->
+<div class="modal fade modal-dark" id="modalCliente" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitulo">
+                    <i class="fa-solid fa-user-plus"></i> Nuevo Cliente
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <form id="formCliente" th:action="@{/clientes/guardar}" method="post">
+                <input type="hidden" name="id" id="clienteId">
+                <input type="hidden" name="tipoDocumento" id="tipoDoc">
+
+                <div class="modal-body" style="padding:24px;">
+
+                    <!-- DNI / RUC -->
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fa-solid fa-id-card" style="color:#3b82f6;"></i>
+                            Documento (DNI o RUC)
+                        </label>
+                        <div class="input-consulta">
+                            <input type="text" class="form-control" id="docInput" name="documento"
+                                   placeholder="Ingresa DNI (8 dígitos) o RUC (11 dígitos)"
+                                   maxlength="11" oninput="this.value=this.value.replace(/\D/g,'')">
+                            <button type="button" class="btn-consultar" onclick="consultarDocumento()" title="Buscar">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                            </button>
+                        </div>
+                        <div class="consulta-status" id="consultaStatus"></div>
+                    </div>
+
+                    <!-- NOMBRE -->
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fa-solid fa-user" style="color:#7c3aed;"></i> Nombre completo / Razón Social
+                        </label>
+                        <input type="text" class="form-control" id="nombreInput" name="nombre"
+                               placeholder="Nombre completo o Razón Social" required>
+                    </div>
+
+                    <div class="row g-3">
+                        <!-- TELÉFONO -->
+                        <div class="col-6">
+                            <label class="form-label">
+                                <i class="fa-solid fa-phone" style="color:#10b981;"></i> Teléfono <span style="color:#f87171;">*</span>
+                            </label>
+                            <input type="text" class="form-control" id="telefonoInput" name="telefono"
+                                   placeholder="Ej: 987654321" maxlength="15"
+                                   oninput="this.value=this.value.replace(/[^0-9+\-\s]/g,'')">
+                            <div id="errTelefono" style="color:#f87171;font-size:12px;margin-top:4px;display:none;">
+                                El teléfono es obligatorio.
+                            </div>
+                        </div>
+                        <!-- CORREO -->
+                        <div class="col-6">
+                            <label class="form-label">
+                                <i class="fa-solid fa-envelope" style="color:#f59e0b;"></i> Correo
+                            </label>
+                            <input type="email" class="form-control" id="correoInput" name="correo"
+                                   placeholder="correo@dominio.com">
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer" style="padding:16px 24px; gap:10px;">
+                    <button type="button" class="btn-cancel" data-bs-dismiss="modal">
+                        <i class="fa-solid fa-xmark"></i> Cancelar
+                    </button>
+                    <button type="button" class="btn-save" onclick="validarYGuardar()">
+                        <i class="fa-solid fa-floppy-disk"></i> Guardar
+                    </button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const modalCliente = new bootstrap.Modal(document.getElementById('modalCliente'));
+
+// ===================== ABRIR MODAL NUEVO =====================
+function abrirModalNuevo() {
+    document.getElementById('modalTitulo').innerHTML = '<i class="fa-solid fa-user-plus"></i> Nuevo Cliente';
+    document.getElementById('clienteId').value = '';
+    document.getElementById('docInput').value = '';
+    document.getElementById('nombreInput').value = '';
+    document.getElementById('telefonoInput').value = '';
+    document.getElementById('correoInput').value = '';
+    document.getElementById('tipoDoc').value = '';
+    document.getElementById('consultaStatus').textContent = '';
+    document.getElementById('docInput').disabled = false;
+    // Liberar nombre al abrir nuevo
+    const nombreEl = document.getElementById('nombreInput');
+    nombreEl.readOnly = false;
+    nombreEl.classList.remove('input-bloqueado');
+    nombreEl.title = '';
+    modalCliente.show();
+}
+
+// ===================== ABRIR MODAL EDITAR =====================
+async function abrirModalEditar(id) {
+    const res = await fetch('/clientes/editar/' + id);
+    const c = await res.json();
+    document.getElementById('modalTitulo').innerHTML = '<i class="fa-solid fa-pen"></i> Editar Cliente';
+    document.getElementById('clienteId').value = c.id;
+    document.getElementById('docInput').value = c.documento || '';
+    document.getElementById('telefonoInput').value = c.telefono || '';
+    document.getElementById('correoInput').value = c.correo || '';
+    document.getElementById('tipoDoc').value = c.tipoDocumento || '';
+    document.getElementById('consultaStatus').innerHTML = '<span style="color:#64748b;font-size:11px;"><i class="fa-solid fa-lock"></i> Nombre bloqueado — obtenido del documento.</span>';
+    // Bloquear nombre en edición (ya fue validado por DNI/RUC)
+    const nombreEl = document.getElementById('nombreInput');
+    nombreEl.value = c.nombre || '';
+    nombreEl.readOnly = true;
+    nombreEl.classList.add('input-bloqueado');
+    nombreEl.title = 'El nombre fue obtenido automáticamente y no puede editarse.';
+    modalCliente.show();
+}
+
+// ===================== CONSULTAR DNI/RUC =====================
+async function consultarDocumento() {
+    const doc = document.getElementById('docInput').value.trim();
+    const status = document.getElementById('consultaStatus');
+
+    if (doc.length !== 8 && doc.length !== 11) {
+        status.className = 'consulta-status consulta-err';
+        status.textContent = '⚠ Ingresa 8 dígitos (DNI) o 11 dígitos (RUC)';
+        return;
+    }
+
+    status.className = 'consulta-status consulta-loading';
+    status.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Consultando...';
+
+    try {
+        const res = await fetch('/clientes/api/consultar?documento=' + doc);
+        const data = await res.json();
+
+        if (data.success) {
+            const nombreEl = document.getElementById('nombreInput');
+            nombreEl.value = data.nombre;
+            nombreEl.readOnly = true;
+            nombreEl.classList.add('input-bloqueado');
+            nombreEl.title = 'El nombre fue obtenido automáticamente y no puede editarse.';
+            document.getElementById('tipoDoc').value = data.tipo;
+            status.className = 'consulta-status consulta-ok';
+            status.innerHTML = '<i class="fa-solid fa-check-circle"></i> ' + data.tipo + ' encontrado: <b>' + data.nombre + '</b> <small style="color:#64748b;">(nombre bloqueado)</small>';
+        } else {
+            status.className = 'consulta-status consulta-err';
+            status.textContent = '✗ ' + data.mensaje;
+        }
+    } catch(e) {
+        status.className = 'consulta-status consulta-err';
+        status.textContent = '✗ Error de conexión';
+    }
+}
+
+// Consultar al presionar Enter en el campo documento
+document.getElementById('docInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); consultarDocumento(); }
+});
+
+// ── Si el usuario modifica el documento después de una búsqueda, resetear nombre ──
+document.getElementById('docInput').addEventListener('input', function() {
+    const nombreEl = document.getElementById('nombreInput');
+    const status   = document.getElementById('consultaStatus');
+
+    // Si el campo nombre estaba bloqueado, liberarlo y limpiarlo
+    if (nombreEl.readOnly) {
+        nombreEl.value   = '';
+        nombreEl.readOnly = false;
+        nombreEl.classList.remove('input-bloqueado');
+        nombreEl.title   = '';
+        document.getElementById('tipoDoc').value = '';
+        status.textContent = '';
+    }
+
+    // Auto-consultar cuando se completan 8 u 11 dígitos
+    if (this.value.length === 8 || this.value.length === 11) {
+        consultarDocumento();
+    }
+});
+
+// ===================== VALIDAR Y GUARDAR =====================
+function validarYGuardar() {
+    const doc    = document.getElementById('docInput').value.trim();
+    const nombre = document.getElementById('nombreInput').value.trim();
+
+    if (!doc || (doc.length !== 8 && doc.length !== 11)) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Documento inválido',
+            text: 'Debes ingresar un DNI (8 dígitos) o RUC (11 dígitos) válido antes de guardar.',
+            background: '#0f172a',
+            color: 'white',
+            confirmButtonColor: '#6366f1',
+            confirmButtonText: 'Corregir'
+        });
+        document.getElementById('docInput').focus();
+        return;
+    }
+
+    if (!nombre) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Nombre requerido',
+            text: 'Primero busca el documento para obtener el nombre del cliente.',
+            background: '#0f172a',
+            color: 'white',
+            confirmButtonColor: '#6366f1',
+            confirmButtonText: 'Corregir'
+        });
+        return;
+    }
+
+    const telefono = document.getElementById('telefonoInput').value.trim();
+    const errTel   = document.getElementById('errTelefono');
+    if (!telefono) {
+        errTel.style.display = 'block';
+        document.getElementById('telefonoInput').focus();
+        return;
+    }
+    errTel.style.display = 'none';
+
+    document.getElementById('formCliente').submit();
+}
+
+// ===================== HELPER POST =====================
+function postAccion(url) {
+    const f = document.createElement('form');
+    f.method = 'POST'; f.action = url;
+    document.body.appendChild(f); f.submit();
+}
+
+// ===================== ELIMINAR =====================
+function confirmarEliminar(id) {
+    Swal.fire({
+        title: '¿Eliminar cliente?',
+        text: 'Esta acción no se puede deshacer.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#3b82f6',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar',
+        background: '#0f172a',
+        color: '#e2e8f0'
+    }).then(r => {
+        if (r.isConfirmed) postAccion('/clientes/eliminar/' + id);
+    });
+}
+
+// ===================== FILTRO BÚSQUEDA =====================
+function filtrarTabla() {
+    const texto = document.getElementById('buscarInput').value.toLowerCase();
+    document.querySelectorAll('#tablaClientes tbody tr:not(.empty-row)').forEach(tr => {
+        tr.style.display = tr.textContent.toLowerCase().includes(texto) ? '' : 'none';
+    });
+}
+</script>
+</body>
+</html>

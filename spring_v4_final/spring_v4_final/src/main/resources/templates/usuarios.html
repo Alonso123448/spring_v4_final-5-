@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Usuarios</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        *{ margin:0; padding:0; box-sizing:border-box; }
+        body{
+            background:
+                radial-gradient(circle at top left,#1e3a8a 0%,transparent 25%),
+                radial-gradient(circle at bottom right,#7c3aed 0%,transparent 25%),
+                #0f172a;
+            font-family:'Segoe UI',sans-serif; color:white; min-height:100vh;
+        }
+        .main{ margin-left:270px; padding:30px; }
+        /* CARD */
+        .card{ background:rgba(255,255,255,.06); backdrop-filter:blur(20px);
+            border-radius:24px; border:1px solid rgba(255,255,255,.08);
+            box-shadow:0 15px 40px rgba(0,0,0,.25); }
+        /* TOPBAR */
+        .d-flex h2{ font-size:32px; font-weight:800;
+            text-shadow:0 0 10px rgba(59,130,246,.7),0 0 20px rgba(124,58,237,.5); }
+        /* TABLA */
+        .table{ color:#e2e8f0; border-collapse:separate; border-spacing:0 8px; }
+        .table-light{
+            --bs-table-color: #93c5fd !important;
+            --bs-table-bg: transparent !important;
+            --bs-table-border-color: rgba(255,255,255,.08) !important;
+            background:transparent !important; color:#93c5fd !important;
+        }
+        .table > :not(caption) > * > *{ background-color:transparent !important; }
+        .table thead th{ color:#93c5fd !important; font-size:13px; font-weight:700;
+            text-transform:uppercase; letter-spacing:1px; padding:12px 16px;
+            border:none; background:transparent; }
+        .table tbody tr{ background:rgba(255,255,255,.04); transition:.3s; }
+        .table tbody tr:hover{ background:rgba(59,130,246,.1); }
+        .table tbody td{ padding:13px 16px; font-size:14px; color:#e2e8f0 !important;
+            border-color:rgba(255,255,255,.05); vertical-align:middle; }
+        .table tbody tr:hover > td{ color:#e2e8f0 !important; }
+        /* BADGES */
+        .bg-success{ background:rgba(16,185,129,.2) !important; color:#6ee7b7 !important;
+            padding:5px 14px; border-radius:20px; font-size:12px; font-weight:700;
+            border:1px solid rgba(16,185,129,.3); }
+        .bg-danger{ background:rgba(239,68,68,.2) !important; color:#fca5a5 !important;
+            padding:5px 14px; border-radius:20px; font-size:12px; font-weight:700;
+            border:1px solid rgba(239,68,68,.3); }
+        .bg-secondary{ background:rgba(100,116,139,.2) !important; color:#94a3b8 !important;
+            padding:5px 14px; border-radius:20px; font-size:12px;
+            border:1px solid rgba(100,116,139,.3); }
+        /* BOTONES */
+        .btn-icon{ width:36px; height:36px; border:none; border-radius:10px;
+            color:white; cursor:pointer; transition:.3s; }
+        .btn-icon:hover{ transform:translateY(-2px); }
+        .btn-editar{ background:linear-gradient(135deg,#f59e0b,#d97706); }
+        .btn-eliminar{ background:linear-gradient(135deg,#ef4444,#dc2626); }
+        .btn-primary{ background:linear-gradient(135deg,#2563eb,#7c3aed) !important;
+            border:none !important; border-radius:14px !important;
+            font-weight:700 !important; transition:.35s !important; }
+        .btn-primary:hover{ transform:translateY(-2px);
+            box-shadow:0 8px 20px rgba(99,130,246,.3) !important; }
+        .btn-secondary{ background:rgba(255,255,255,.08) !important;
+            border:1px solid rgba(255,255,255,.1) !important; color:#94a3b8 !important;
+            border-radius:14px !important; }
+        .btn-warning{ background:linear-gradient(135deg,#f59e0b,#d97706) !important;
+            border:none !important; color:white !important; border-radius:10px; }
+        /* MODAL */
+        .modal-content{ background:#0f172a; border:1px solid rgba(255,255,255,.1);
+            border-radius:24px; color:white; }
+        .modal-header{ border-bottom:1px solid rgba(255,255,255,.08); padding:20px 24px; }
+        .modal-title{ font-weight:800; font-size:20px; }
+        .modal-footer{ border-top:1px solid rgba(255,255,255,.08); }
+        .btn-close{ filter:invert(1); }
+        label{ color:#cbd5e1; font-size:13px; font-weight:600; }
+        .form-control,.form-select{
+            background:rgba(255,255,255,.08) !important; border:1px solid rgba(255,255,255,.1) !important;
+            color:white !important; border-radius:12px; padding:11px 14px; }
+        .form-control:focus,.form-select:focus{
+            background:rgba(255,255,255,.12) !important; border-color:#3b82f6 !important;
+            box-shadow:0 0 0 3px rgba(59,130,246,.2) !important; outline:none; }
+        .form-control::placeholder{ color:#64748b; }
+        .form-control option, .form-select option{
+            background:#1e293b; color:#e2e8f0; }
+        .form-check-label{ color:#cbd5e1 !important; font-size:14px; font-weight:500; }
+        .form-check-input{ accent-color:#3b82f6; width:18px; height:18px; }
+        .fw-bold{ color:white; }
+        /* RESPONSIVE */
+        @media(max-width:768px){
+            .d-flex.justify-content-between{ flex-wrap:wrap; gap:12px; }
+            .btn-primary{ width:100%; }
+            .card{ margin-top:0; }
+            .table thead th{ font-size:11px; padding:8px 10px; }
+            .table tbody td{ padding:10px; font-size:13px; }
+            .btn-icon{ width:32px; height:32px; }
+        }
+    </style>
+</head>
+<body>
+
+<div th:replace="fragments/sidebar :: sidebar"></div>
+
+<div class="main">
+    <div class="card p-4">
+        <div class="d-flex justify-content-between mb-4">
+            <h2 class="fw-bold">Gestión de Usuarios</h2>
+            <button class="btn btn-primary" onclick="initModalNew()">+ Nuevo Usuario</button>
+        </div>
+
+        <table class="table table-hover align-middle text-center">
+            <thead class="table-light">
+            <tr>
+                <th>ID</th>
+                <th>Username</th>
+                <th>Nombre</th>
+                <th>Email</th>
+                <th>Perfil</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="u : ${usuarios}">
+                <td th:text="${u.id}"></td>
+                <td th:text="${u.username}"></td>
+                <td th:text="${u.nombre}"></td>
+                <td th:text="${u.email}"></td>
+                <td>
+                    <span th:each="r : ${u.roles}" th:text="${r.nombre}" class="badge bg-secondary me-1"></span>
+                </td>
+                <td>
+                    <span th:text="${u.activo ? 'Activo' : 'Inactivo'}"
+                          th:classappend="${u.activo ? 'badge bg-success' : 'badge bg-danger'}"></span>
+                </td>
+                <td>
+                   <!-- Botón visualizar amarillo -->
+<button class="btn btn-warning btn-sm"
+        type="button"
+        th:data-username="${u.username}"
+        th:data-nombre="${u.nombre}"
+        th:data-email="${u.email}"
+        th:data-activo="${u.activo}"
+        th:data-rol="${!#lists.isEmpty(u.roles) ? u.roles[0].nombre : 'Sin perfil'}"
+        onclick="viewUsuario(this)">👁</button>
+
+                    <!-- Botón reset contraseña — solo superadmin -->
+                    <button class="btn-icon"
+                            th:if="${!u.username.equalsIgnoreCase('superadmin')}"
+                            sec:authorize="hasRole('SUPERADMIN') or hasRole('ADMIN')"
+                            th:attr="onclick=|resetearPassword(${u.id}, '${u.username}')|"
+                            title="Resetear contraseña temporal"
+                            style="background:linear-gradient(135deg,#6366f1,#7c3aed);">
+                        🔑
+                    </button>
+
+                    <!-- Botón editar celeste -->
+                    <button class="btn-icon btn-editar" type="button"
+                            th:data-id="${u.id}"
+                            th:data-username="${u.username}"
+                            th:data-nombre="${u.nombre}"
+                            th:data-email="${u.email}"
+                            th:data-activo="${u.activo}"
+                            th:data-rol="${!#lists.isEmpty(u.roles) ? u.roles[0].id : ''}"
+                            onclick="initModalEdit(
+                                this.getAttribute('data-id'),
+                                this.getAttribute('data-username'),
+                                this.getAttribute('data-nombre'),
+                                this.getAttribute('data-email'),
+                                this.getAttribute('data-activo'),
+                                this.getAttribute('data-rol')
+                            )">✏</button>
+
+                    <a th:href="@{/usuarios/estado/{id}(id=${u.id})}" class="btn-estado-link"
+                       th:attr="data-username=${u.username}">
+                    <button class="btn btn-secondary btn-sm" type="button">⇄</button>
+                    </a>
+
+                    <a th:href="@{/usuarios/eliminar/{id}(id=${u.id})}" class="btn-eliminar-link"
+                       th:attr="data-username=${u.username}">
+                        <button class="btn-icon btn-eliminar" type="button">🗑</button>
+                    </a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- MODAL USUARIO -->
+<div class="modal fade" id="modalUsuario" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="formUsuario" method="post" action="/usuarios/guardar">
+                <input type="hidden" name="id" id="usuarioId">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle">Nuevo Usuario</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label>Username <small style="color:#64748b;">(solo letras, números y _)</small></label>
+                        <input type="text" name="username" id="username" class="form-control" required
+                               pattern="[a-zA-Z0-9_]+"
+                               title="Solo letras, números y guión bajo. Sin espacios ni caracteres especiales."
+                               oninput="validarUsername(this)">
+                        <div id="usernameError" style="color:#fca5a5;font-size:12px;margin-top:4px;display:none;">
+                            Solo se permiten letras, números y guión bajo (_). Sin espacios ni caracteres especiales.
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label>Password</label>
+                        <input type="password" name="password" id="password" class="form-control">
+                        <div id="passwordError" style="display:none; color:#ef4444; font-size:13px; margin-top:4px;">
+                            La contraseña es obligatoria para nuevo usuario.
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label>Nombre <small style="color:#64748b;">(solo letras y espacios)</small></label>
+                        <input type="text" name="nombre" id="nombre" class="form-control" required
+                               pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+"
+                               title="Solo se permiten letras y espacios. Sin números ni caracteres especiales."
+                               oninput="validarNombre(this)">
+                        <div id="nombreError" style="color:#fca5a5;font-size:12px;margin-top:4px;display:none;">
+                            Solo se permiten letras y espacios. Sin números ni caracteres especiales.
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label>Email</label>
+                        <input type="email" name="email" id="email" class="form-control" required
+                               oninput="validarEmail(this)">
+                        <div id="emailError" style="color:#fca5a5;font-size:12px;margin-top:4px;display:none;">
+                            Ingresa un email válido (ejemplo: usuario@dominio.com).
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label>Estado</label>
+                        <select name="activo" id="activo" class="form-control">
+                            <option value="true">Activo</option>
+                            <option value="false">Inactivo</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="fw-bold">Perfil <small style="color:#fca5a5;">*requerido</small></label>
+                        <div id="perfilError" style="color:#fca5a5;font-size:12px;margin-bottom:6px;display:none;">
+                            Debes seleccionar un perfil.
+                        </div>
+                        <select name="rolesSeleccionados" id="rolesSeleccionados" class="form-control mt-1">
+                            <option value="">-- Seleccionar perfil --</option>
+                            <option th:each="r : ${roles}"
+                                    th:value="${r.id}"
+                                    th:text="${r.nombre}"
+                                    th:attr="data-nombre=${r.nombre}">Rol</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" type="button" onclick="validarYGuardar()">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    var modalUsuario = new bootstrap.Modal(document.getElementById('modalUsuario'));
+
+    // ── Validación username: solo letras, números y _ ──
+    function validarUsername(input) {
+        const ok = /^[a-zA-Z0-9_]*$/.test(input.value);
+        document.getElementById('usernameError').style.display = ok ? 'none' : 'block';
+        input.style.borderColor = ok ? '' : '#ef4444';
+        // Bloquea caracteres inválidos en tiempo real
+        if (!ok) input.value = input.value.replace(/[^a-zA-Z0-9_]/g, '');
+        document.getElementById('usernameError').style.display = 'none';
+    }
+
+    // ── Validación email ──
+    function validarEmail(input) {
+        const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.value.trim());
+        document.getElementById('emailError').style.display = ok ? 'none' : 'block';
+        input.style.borderColor = ok ? '' : '#ef4444';
+    }
+
+    // ── Validación nombre: solo letras y espacios ──
+    function validarNombre(input) {
+        const ok = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]*$/.test(input.value);
+        document.getElementById('nombreError').style.display = ok ? 'none' : 'block';
+        if (!ok) input.value = input.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]/g, '');
+        document.getElementById('nombreError').style.display = 'none';
+    }
+
+    // ── Validar y guardar ──
+    function validarYGuardar() {
+        const username  = document.getElementById('username').value.trim();
+        const nombre    = document.getElementById('nombre').value.trim();
+        const email     = document.getElementById('email').value.trim();
+        const password  = document.getElementById('password').value.trim();
+        const perfil    = document.getElementById('rolesSeleccionados');
+        const esNuevo   = document.getElementById('usuarioId').value === '';
+
+        let ok = true;
+
+        // Username
+        if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+            document.getElementById('usernameError').style.display = 'block';
+            ok = false;
+        }
+        // Nombre
+        if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/.test(nombre)) {
+            document.getElementById('nombreError').style.display = 'block';
+            ok = false;
+        }
+        // Email
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            document.getElementById('emailError').style.display = 'block';
+            document.getElementById('email').style.borderColor = '#ef4444';
+            ok = false;
+        }
+        // Contraseña obligatoria solo para nuevo usuario
+        if (esNuevo && password === '') {
+            document.getElementById('passwordError').style.display = 'block';
+            ok = false;
+        } else {
+            document.getElementById('passwordError').style.display = 'none';
+        }
+        // Perfil obligatorio
+        if (!perfil || perfil.value === '') {
+            document.getElementById('perfilError').style.display = 'block';
+            ok = false;
+        } else {
+            document.getElementById('perfilError').style.display = 'none';
+        }
+
+        if (ok) document.getElementById('formUsuario').submit();
+    }
+
+    // ── Nuevo Usuario ──
+    function initModalNew(){
+        document.getElementById('formUsuario').reset();
+        document.getElementById('usuarioId').value = '';
+        document.getElementById('modalTitle').textContent = 'Nuevo Usuario';
+        document.querySelectorAll('input[name="rolesSeleccionados"]').forEach(r => r.checked = false);
+        document.getElementById('rolesSeleccionados').value     = '';
+        document.getElementById('usernameError').style.display  = 'none';
+        document.getElementById('nombreError').style.display    = 'none';
+        document.getElementById('emailError').style.display     = 'none';
+        document.getElementById('email').style.borderColor      = '';
+        document.getElementById('passwordError').style.display  = 'none';
+        document.getElementById('perfilError').style.display    = 'none';
+        modalUsuario.show();
+    }
+
+    // ── Editar Usuario ──
+    function initModalEdit(id, username, nombre, email, activo, rolId){
+        if(username.toLowerCase() === 'superadmin'){
+            Swal.fire({
+                title: 'Acción no permitida',
+                text: 'El usuario SUPERADMIN no puede ser editado.',
+                icon: 'error',
+                confirmButtonText: 'Aceptar',
+                confirmButtonColor: '#6366f1'
+            });
+            return;
+        }
+        document.getElementById('usuarioId').value = id;
+        document.getElementById('username').value  = username;
+        document.getElementById('password').value  = '';
+        document.getElementById('nombre').value    = nombre;
+        document.getElementById('email').value     = email;
+        document.getElementById('activo').value    = activo;
+        document.getElementById('usernameError').style.display  = 'none';
+        document.getElementById('nombreError').style.display    = 'none';
+        document.getElementById('emailError').style.display     = 'none';
+        document.getElementById('email').style.borderColor      = '';
+        document.getElementById('passwordError').style.display  = 'none';
+        document.getElementById('perfilError').style.display    = 'none';
+        // Seleccionar el rol en el select
+        const selectRol = document.getElementById('rolesSeleccionados');
+        selectRol.value = (rolId && rolId !== 'null') ? rolId : '';
+        document.getElementById('modalTitle').textContent = 'Editar Usuario';
+        modalUsuario.show();
+    }
+
+    // ── Visualizar Usuario ──
+    function viewUsuario(btn){
+        Swal.fire({
+            title: 'Información del Usuario',
+            html:
+                '<b>Username:</b> ' + (btn.getAttribute('data-username') || '-') + '<br>' +
+                '<b>Nombre:</b> '   + (btn.getAttribute('data-nombre')   || '-') + '<br>' +
+                '<b>Email:</b> '    + (btn.getAttribute('data-email')    || '-') + '<br>' +
+                '<b>Estado:</b> '   + (btn.getAttribute('data-activo') === 'true' ? 'Activo' : 'Inactivo') + '<br>' +
+                '<b>Perfil:</b> '   + (btn.getAttribute('data-rol')     || 'Sin perfil'),
+            icon: 'info',
+            confirmButtonText: 'Cerrar',
+            confirmButtonColor: '#6366f1'
+        });
+    }
+
+    // ── Eliminar ──
+    document.querySelectorAll('.btn-eliminar-link').forEach(btn => {
+        btn.addEventListener('click', function(e){
+            e.preventDefault();
+            const username = this.getAttribute('data-username') || '';
+            if(username.toLowerCase() === 'superadmin'){
+                Swal.fire({
+                    title: 'Acción no permitida',
+                    text: 'El usuario SUPERADMIN no puede ser eliminado.',
+                    icon: 'error',
+                    confirmButtonText: 'Aceptar',
+                    confirmButtonColor: '#6366f1'
+                });
+                return;
+            }
+            const url = this.getAttribute('href');
+            Swal.fire({
+                title: '¿Eliminar usuario?',
+                text: 'Esta acción no se puede deshacer',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Eliminar',
+                cancelButtonText: 'Cancelar'
+            }).then(r => { if(r.isConfirmed){ const f=document.createElement('form'); f.method='POST'; f.action=url; document.body.appendChild(f); f.submit(); } });
+        });
+    });
+
+    // ── Copiar contraseña temporal ──
+    function copiarPass(pass, btn) {
+        navigator.clipboard.writeText(pass).then(() => {
+            btn.textContent = '✅';
+            btn.style.background = '#10b981';
+            setTimeout(() => { btn.textContent = '📋'; btn.style.background = '#6366f1'; }, 2000);
+        });
+    }
+
+    // ── Resetear contraseña ──
+    function resetearPassword(id, username) {
+        Swal.fire({
+            title: '¿Resetear contraseña?',
+            html: `Se generará una contraseña temporal para <b>${username}</b>.<br>El usuario deberá cambiarla al iniciar sesión.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#6366f1',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, resetear',
+            cancelButtonText: 'Cancelar',
+            background: '#0f172a',
+            color: 'white'
+        }).then(r => {
+            if (!r.isConfirmed) return;
+            fetch(`/usuarios/resetear/${id}`, { method: 'POST' })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.ok) {
+                        Swal.fire({
+                            title: '✅ Contraseña reseteada',
+                            html: `<p style="color:#94a3b8;margin-bottom:12px;">Contraseña temporal para <b style="color:white;">${username}</b>:</p>
+                                   <div style="display:flex;align-items:center;gap:8px;justify-content:center;">
+                                       <div id="swalPass"
+                                            style="background:#1e293b;border:2px dashed #6366f1;border-radius:12px;
+                                                   padding:14px 20px;font-size:22px;font-weight:900;
+                                                   letter-spacing:6px;color:#a5b4fc;flex:1;text-align:center;">
+                                           ${data.password}
+                                       </div>
+                                       <button onclick="copiarPass('${data.password}', this)"
+                                               style="background:#6366f1;border:none;border-radius:10px;
+                                                      padding:12px 14px;color:white;cursor:pointer;
+                                                      font-size:18px;flex-shrink:0;transition:.2s;"
+                                               title="Copiar contraseña">
+                                           📋
+                                       </button>
+                                   </div>
+                                   <p style="color:#64748b;font-size:12px;margin-top:12px;">
+                                       Al iniciar sesión el usuario deberá cambiarla.
+                                   </p>`,
+                            confirmButtonText: 'Cerrar',
+                            confirmButtonColor: '#6366f1',
+                            background: '#0f172a',
+                            color: 'white'
+                        });
+                    } else {
+                        Swal.fire({ icon: 'error', title: 'Error', text: data.msg,
+                                    background: '#0f172a', color: 'white', confirmButtonColor: '#6366f1' });
+                    }
+                });
+        });
+    }
+
+    // ── Cambiar estado ──
+    document.querySelectorAll('.btn-estado-link').forEach(btn => {
+        btn.addEventListener('click', function(e){
+            e.preventDefault();
+            const username = this.getAttribute('data-username') || '';
+            if(username.toLowerCase() === 'superadmin'){
+                Swal.fire({
+                    title: 'Acción no permitida',
+                    text: 'No se puede cambiar el estado del usuario SUPERADMIN.',
+                    icon: 'error',
+                    confirmButtonText: 'Aceptar',
+                    confirmButtonColor: '#6366f1'
+                });
+                return;
+            }
+            const url = this.getAttribute('href');
+            Swal.fire({
+                title: '¿Cambiar estado del usuario?',
+                text: 'Cambiará entre Activo e Inactivo',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#0d6efd',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sí, cambiar',
+                cancelButtonText: 'Cancelar'
+            }).then(r => { if(r.isConfirmed){ const f=document.createElement('form'); f.method='POST'; f.action=url; document.body.appendChild(f); f.submit(); } });
+        });
+    });
+</script>
+
+<script src="/js/main.js"></script>
+
+<script th:if="${error}">
+Swal.fire({
+    icon: 'error',
+    title: 'Error',
+    text: '[(${error})]',
+    confirmButtonText: 'Aceptar'
+});
+</script>
+
+<script th:if="${success}">
+Swal.fire({
+    icon: 'success',
+    title: 'Correcto',
+    text: '[(${success})]',
+    confirmButtonText: 'Aceptar'
+});
+</script>
+
+</body>
+</html>

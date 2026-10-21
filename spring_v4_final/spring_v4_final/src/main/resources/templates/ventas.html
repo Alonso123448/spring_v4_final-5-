@@ -1,0 +1,1635 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ventas - Inventario</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{
+            background:radial-gradient(circle at top left,#1e3a8a 0%,transparent 25%),
+                        radial-gradient(circle at bottom right,#7c3aed 0%,transparent 25%),#0f172a;
+            font-family:'Segoe UI',sans-serif;color:white;min-height:100vh;
+        }
+        .main{margin-left:270px;padding:30px;}
+        .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:30px;}
+        .topbar h2{font-size:34px;font-weight:800;
+            text-shadow:0 0 10px rgba(59,130,246,.7),0 0 20px rgba(124,58,237,.5);}
+        .section-card{background:rgba(255,255,255,.06);backdrop-filter:blur(20px);
+            border-radius:24px;padding:28px;border:1px solid rgba(255,255,255,.08);
+            box-shadow:0 15px 40px rgba(0,0,0,.25);}
+        /* TABLA */
+        .tbl{width:100%;border-collapse:separate;border-spacing:0 8px;}
+        .tbl thead th{color:#93c5fd;font-size:12px;font-weight:700;text-transform:uppercase;
+            letter-spacing:1px;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.08);}
+        .tbl tbody tr{background:rgba(255,255,255,.04);transition:.3s;}
+        .tbl tbody tr:hover{background:rgba(59,130,246,.1);}
+        .tbl tbody td{padding:12px 14px;font-size:13px;color:#e2e8f0;
+            border-top:1px solid rgba(255,255,255,.05);border-bottom:1px solid rgba(255,255,255,.05);}
+        .tbl tbody td:first-child{border-radius:14px 0 0 14px;border-left:1px solid rgba(255,255,255,.05);}
+        .tbl tbody td:last-child{border-radius:0 14px 14px 0;border-right:1px solid rgba(255,255,255,.05);}
+        /* BADGES */
+        .b-completada{background:rgba(16,185,129,.2);color:#6ee7b7;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;}
+        .b-pendiente{background:rgba(245,158,11,.2);color:#fcd34d;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;}
+        .b-anulada{background:rgba(239,68,68,.2);color:#fca5a5;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;}
+        .b-contado{background:rgba(16,185,129,.15);color:#6ee7b7;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:700;}
+        .b-credito{background:rgba(245,158,11,.15);color:#fcd34d;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:700;}
+        .deuda-red{color:#f87171;font-weight:700;}
+        .deuda-ok{color:#6ee7b7;font-weight:600;}
+        /* BOTONES ACCION */
+        .ba{border:none;padding:6px 11px;border-radius:9px;cursor:pointer;transition:.3s;font-size:12px;}
+        .ba-edit  {background:rgba(245,158,11,.25); color:#fcd34d; border:1px solid rgba(245,158,11,.3);}
+        .ba-view  {background:rgba(20,184,166,.2);  color:#5eead4; border:1px solid rgba(20,184,166,.3);}
+        .ba-del   {background:rgba(239,68,68,.25);  color:#fca5a5; border:1px solid rgba(239,68,68,.3);}
+        .ba-cuota {background:rgba(234,179,8,.25);  color:#fde047; border:1px solid rgba(234,179,8,.3);}
+        .ba-hist  {background:rgba(59,130,246,.25); color:#93c5fd; border:1px solid rgba(59,130,246,.3);}
+        .ba:hover{transform:translateY(-2px);filter:brightness(1.25);box-shadow:0 4px 12px rgba(0,0,0,.3);}
+        /* BTN NUEVO */
+        .btn-nuevo{border:none;padding:12px 22px;border-radius:14px;
+            background:linear-gradient(135deg,#2563eb,#7c3aed);color:white;
+            font-weight:700;cursor:pointer;transition:.35s;display:flex;align-items:center;gap:8px;}
+        .btn-nuevo:hover{transform:translateY(-3px);box-shadow:0 12px 30px rgba(99,130,246,.35);}
+        /* MODALES */
+        .modal-dark .modal-content{background:#0f172a;border:1px solid rgba(255,255,255,.1);border-radius:24px;color:white;}
+        .modal-dark .modal-header{border-bottom:1px solid rgba(255,255,255,.08);padding:20px 24px;}
+        .modal-dark .modal-title{font-weight:800;font-size:18px;}
+        .modal-dark .modal-footer{border-top:1px solid rgba(255,255,255,.08);padding:14px 24px;gap:10px;}
+        .modal-dark .btn-close{filter:invert(1);}
+        .form-label{color:#cbd5e1;font-size:13px;font-weight:600;margin-bottom:5px;display:block;}
+        .form-control,.form-select{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);
+            color:white;border-radius:12px;padding:10px 14px;font-size:13px;}
+        .form-control:focus,.form-select:focus{background:rgba(255,255,255,.12);border-color:#3b82f6;
+            color:white;box-shadow:0 0 0 3px rgba(59,130,246,.2);outline:none;}
+        .form-control::placeholder{color:#64748b;}
+        .form-select option{background:#1e293b;color:white;}
+        .btn-save{border:none;padding:11px 22px;border-radius:14px;
+            background:linear-gradient(135deg,#2563eb,#7c3aed);color:white;font-weight:700;cursor:pointer;}
+        .btn-cancel{border:1px solid rgba(255,255,255,.15);padding:11px 22px;border-radius:14px;
+            background:transparent;color:#94a3b8;font-weight:600;cursor:pointer;}
+        /* INPUT CONSULTA */
+        .input-consulta{position:relative;}
+        .input-consulta input{padding-right:46px;}
+        .btn-lupa{position:absolute;right:6px;top:50%;transform:translateY(-50%);
+            background:linear-gradient(135deg,#2563eb,#7c3aed);border:none;
+            color:white;border-radius:9px;padding:5px 11px;cursor:pointer;}
+        .c-ok{font-size:12px;color:#6ee7b7;margin-top:4px;}
+        .c-err{font-size:12px;color:#fca5a5;margin-top:4px;}
+        .c-load{font-size:12px;color:#93c5fd;margin-top:4px;}
+        /* TABLA PRODUCTOS MODAL */
+        .prod-table{width:100%;border-collapse:collapse;margin-top:10px;}
+        .prod-table th{color:#93c5fd;font-size:11px;text-transform:uppercase;padding:6px 10px;
+            border-bottom:1px solid rgba(255,255,255,.08);}
+        .prod-table td{padding:8px 10px;font-size:13px;border-bottom:1px solid rgba(255,255,255,.05);}
+        .btn-rm{background:rgba(239,68,68,.3);border:none;color:#fca5a5;border-radius:8px;
+            padding:4px 9px;cursor:pointer;font-size:12px;}
+        /* TOGGLE CREDITO */
+        .credito-box{background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);
+            border-radius:14px;padding:16px;margin-top:10px;}
+        /* CUOTA MODAL */
+        .cuota-row{display:flex;justify-content:space-between;align-items:center;
+            padding:10px 14px;border-radius:12px;background:rgba(255,255,255,.04);margin-bottom:8px;}
+        .cuota-num{color:#93c5fd;font-weight:700;font-size:13px;min-width:60px;}
+        .cuota-fecha{color:#94a3b8;font-size:12px;}
+        .cuota-monto{color:white;font-weight:700;}
+        .b-pend{background:rgba(245,158,11,.2);color:#fcd34d;padding:3px 10px;border-radius:10px;font-size:11px;}
+        .b-paid{background:rgba(16,185,129,.2);color:#6ee7b7;padding:3px 10px;border-radius:10px;font-size:11px;}
+        .btn-pagar{background:linear-gradient(135deg,#10b981,#059669);border:none;
+            color:white;border-radius:10px;padding:5px 14px;cursor:pointer;font-size:12px;font-weight:700;}
+        .deuda-total{text-align:right;font-size:16px;font-weight:800;margin-top:14px;padding-top:10px;
+            border-top:1px solid rgba(255,255,255,.08);}
+        /* SEARCH */
+        .search-bar{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);
+            border-radius:14px;padding:10px 16px;color:white;width:240px;}
+        .search-bar::placeholder{color:#64748b;}
+        .search-bar:focus{outline:none;border-color:#3b82f6;}
+        /* AUTOCOMPLETE */
+        .autocomplete-list{position:absolute;z-index:9999;width:100%;
+            background:#1e293b;border:1px solid rgba(255,255,255,.1);border-radius:12px;
+            max-height:200px;overflow-y:auto;margin-top:4px;}
+        .autocomplete-item{padding:10px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid rgba(255,255,255,.05);}
+        .autocomplete-item:hover{background:rgba(59,130,246,.2);}
+        /* RESPONSIVE */
+        @media(max-width:768px){
+            .section-card{padding:16px;}
+            .btn-nuevo{width:100%;justify-content:center;}
+            .topbar{margin-bottom:18px;}
+            .tbl thead th{font-size:11px;padding:8px 10px;}
+            .tbl tbody td{padding:10px;font-size:12px;}
+            .ba{padding:5px 8px;font-size:11px;}
+        }
+    </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<th:block th:replace="~{fragments/sidebar :: sidebar}"></th:block>
+
+<!-- MAIN -->
+<div class="main">
+    <div class="topbar">
+        <h2><i class="fa-solid fa-cash-register"></i> Gestión de Ventas</h2>
+        <button class="btn-nuevo" onclick="abrirNuevaVenta()">
+            <i class="fa-solid fa-plus"></i> Nueva Venta
+        </button>
+    </div>
+
+    <!-- ALERTA -->
+    <div th:if="${success}" class="alert mb-3" style="background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.3);color:#6ee7b7;border-radius:14px;padding:12px 18px;">
+        <i class="fa-solid fa-check-circle"></i> <span th:text="${success}"></span>
+    </div>
+
+    <div class="section-card">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <span style="color:#93c5fd;font-weight:700;font-size:16px;">
+                <i class="fa-solid fa-list"></i> Listado de Ventas
+                <span style="color:#64748b;font-size:13px;margin-left:8px;"
+                      th:text="'(' + ${#lists.size(ventas)} + ' registros)'"></span>
+            </span>
+            <input type="text" class="search-bar" placeholder="🔍  Buscar..." oninput="filtrar(this.value)">
+        </div>
+
+        <table class="tbl" id="tblVentas">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>N° Documento</th>
+                    <th>Cliente</th>
+                    <th>Vendedor</th>
+                    <th>Fecha</th>
+                    <th>Total</th>
+                    <th>Forma Pago</th>
+                    <th>Deuda</th>
+                    <th>Estado</th>
+                    <th>Pedido Online</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:if="${#lists.isEmpty(ventas)}">
+                    <td colspan="11" style="text-align:center;padding:50px;color:#475569;">
+                        <i class="fa-solid fa-cash-register" style="font-size:40px;display:block;margin-bottom:10px;"></i>
+                        No hay ventas registradas aún.
+                    </td>
+                </tr>
+                <tr th:each="v : ${ventas}">
+                    <td style="color:#64748b;" th:text="${v.id}"></td>
+                    <td style="font-weight:700;color:#93c5fd;" th:text="${v.numeroDocumento}"></td>
+                    <td th:text="${v.clienteNombre}"></td>
+                    <td style="color:#94a3b8;" th:text="${v.vendedor}"></td>
+                    <td style="color:#94a3b8;font-size:12px;"
+                        th:text="${#temporals.format(v.fecha,'dd/MM/yyyy HH:mm')}"></td>
+                    <td style="font-weight:700;color:#e2e8f0;" th:text="'S/ ' + ${#numbers.formatDecimal(v.total,1,2)}"></td>
+                    <td>
+                        <span th:if="${v.formaPago == 'CONTADO'}"       class="b-contado">CONTADO</span>
+                        <span th:if="${v.formaPago == 'CREDITO'}"       class="b-credito">CRÉDITO</span>
+                        <span th:if="${v.formaPago == 'YAPE'}"
+                              style="background:rgba(124,58,237,.2);color:#c4b5fd;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:700;">📱 YAPE</span>
+                        <span th:if="${v.formaPago == 'TRANSFERENCIA'}"
+                              style="background:rgba(59,130,246,.2);color:#93c5fd;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:700;">🏦 TRANSF.</span>
+                        <span th:if="${v.formaPago != 'CONTADO' and v.formaPago != 'CREDITO' and v.formaPago != 'YAPE' and v.formaPago != 'TRANSFERENCIA' and v.formaPago != null}"
+                              style="background:rgba(100,116,139,.2);color:#94a3b8;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:700;"
+                              th:text="${v.formaPago}"></span>
+                    </td>
+                    <td>
+                        <span th:if="${v.deuda != null and v.deuda > 0}" class="deuda-red"
+                              th:text="'S/ ' + ${#numbers.formatDecimal(v.deuda,1,2)}"></span>
+                        <span th:if="${v.deuda == null or v.deuda <= 0}" class="deuda-ok">S/ 0.00</span>
+                    </td>
+                    <td>
+                        <span th:if="${v.estado == 'COMPLETADA'}" class="b-completada">✓ Completada</span>
+                        <span th:if="${v.estado == 'ANULADA'}"    class="b-anulada">✕ Anulada</span>
+                        <!-- PENDIENTE online = esperando verificación de pago -->
+                        <span th:if="${v.estado == 'PENDIENTE' and v.aprobacionPedido != null}"
+                              style="background:rgba(99,102,241,.2);color:#a5b4fc;padding:4px 10px;
+                                     border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap;">
+                            ⏳ En verificación
+                        </span>
+                        <!-- PENDIENTE credito = deuda pendiente -->
+                        <span th:if="${v.estado == 'PENDIENTE' and v.aprobacionPedido == null}"
+                              class="b-pendiente">⚠ Pendiente pago</span>
+                    </td>
+
+                    <!-- COLUMNA: APROBACIÓN PEDIDO ONLINE -->
+                    <td>
+                        <div th:if="${v.aprobacionPedido != null}" class="d-flex flex-column gap-1 align-items-start">
+                            <!-- Badge de estado -->
+                            <span th:if="${v.aprobacionPedido == 'PENDIENTE'}"
+                                  style="background:rgba(245,158,11,.2);color:#fbbf24;padding:3px 10px;
+                                         border-radius:10px;font-size:10px;font-weight:800;white-space:nowrap;">
+                                ⏳ POR APROBAR
+                            </span>
+                            <span th:if="${v.aprobacionPedido == 'APROBADO'}"
+                                  style="background:rgba(16,185,129,.2);color:#6ee7b7;padding:3px 10px;
+                                         border-radius:10px;font-size:10px;font-weight:800;">
+                                ✓ APROBADO
+                            </span>
+                            <span th:if="${v.aprobacionPedido == 'RECHAZADO'}"
+                                  style="background:rgba(239,68,68,.2);color:#fca5a5;padding:3px 10px;
+                                         border-radius:10px;font-size:10px;font-weight:800;">
+                                ✕ RECHAZADO
+                            </span>
+                            <!-- Botones aprobar/rechazar solo si PENDIENTE -->
+                            <div th:if="${v.aprobacionPedido == 'PENDIENTE'}" class="d-flex gap-1 mt-1">
+                                <button class="ba"
+                                        th:attr="onclick=|aprobarPedido(${v.id})|"
+                                        style="background:rgba(16,185,129,.25);color:#6ee7b7;
+                                               border:1px solid rgba(16,185,129,.4);padding:4px 9px;font-size:11px;"
+                                        title="Aprobar pedido">
+                                    <i class="fa-solid fa-check"></i>
+                                </button>
+                                <button class="ba"
+                                        th:attr="onclick=|rechazarPedido(${v.id})|"
+                                        style="background:rgba(239,68,68,.25);color:#fca5a5;
+                                               border:1px solid rgba(239,68,68,.4);padding:4px 9px;font-size:11px;"
+                                        title="Rechazar pedido">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </div>
+                            <!-- Ver voucher si tiene -->
+                            <button th:if="${v.rutaVoucher != null}"
+                                    th:data-ruta="${v.rutaVoucher}"
+                                    onclick="verVoucher(this.dataset.ruta)"
+                                    class="ba"
+                                    style="background:rgba(99,102,241,.25);color:#a5b4fc;
+                                           border:1px solid rgba(99,102,241,.4);padding:4px 9px;font-size:11px;"
+                                    title="Ver comprobante">
+                                <i class="fa-solid fa-image"></i> Voucher
+                            </button>
+                        </div>
+                        <span th:if="${v.aprobacionPedido == null}" style="color:#475569;font-size:11px;">—</span>
+                    </td>
+
+                    <td>
+                        <div class="d-flex gap-1 flex-wrap">
+
+                            <!-- 👁 VER DETALLE — siempre visible -->
+                            <button class="ba ba-view"
+                                    th:attr="onclick=|verDetalle(${v.id})|"
+                                    title="Ver detalle">
+                                <i class="fa-solid fa-eye"></i>
+                            </button>
+
+                            <!-- 🗑 ELIMINAR — siempre visible (no anulada) -->
+                            <button class="ba ba-del"
+                                    th:attr="onclick=|eliminarVenta(${v.id})|"
+                                    th:if="${v.estado != 'ANULADA'}"
+                                    title="Eliminar / Anular">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+
+                            <!-- 💰 GESTIÓN DE CUOTAS — solo crédito -->
+                            <button class="ba ba-cuota"
+                                    th:attr="onclick=|verCuotas(${v.id})|"
+                                    th:if="${v.esCredito}"
+                                    title="Gestión de Cuotas">
+                                <i class="fa-solid fa-coins"></i>
+                            </button>
+
+                            <!-- 🕐 HISTORIAL DE PAGOS — solo crédito -->
+                            <button class="ba ba-hist"
+                                    th:attr="onclick=|verHistorial(${v.id})|"
+                                    th:if="${v.esCredito}"
+                                    title="Historial de Pagos">
+                                <i class="fa-solid fa-clock-rotate-left"></i>
+                            </button>
+
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ============= MODAL NUEVA VENTA ============= -->
+<div class="modal fade modal-dark" id="modalVenta" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fa-solid fa-plus"></i> Nueva Venta</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form th:action="@{/ventas/guardar}" method="post" id="formVenta">
+                <div class="modal-body" style="padding:24px;">
+
+                    <div class="row g-3">
+                        <!-- CLIENTE DNI/RUC -->
+                        <div class="col-12">
+                            <label class="form-label"><i class="fa-solid fa-id-card" style="color:#3b82f6;"></i> Cliente (DNI/RUC)</label>
+                            <div class="input-consulta">
+                                <input type="text" class="form-control" id="vDocInput" name="clienteDocumento"
+                                       placeholder="8 dígitos DNI / 11 dígitos RUC" maxlength="11"
+                                       oninput="this.value=this.value.replace(/\D/g,'');autoConsultarVenta(this.value)">
+                                <button type="button" class="btn-lupa" onclick="consultarVenta()">
+                                    <i class="fa-solid fa-magnifying-glass"></i>
+                                </button>
+                            </div>
+                            <div id="vConsultaStatus" class="c-load" style="min-height:16px;"></div>
+                        </div>
+
+                        <!-- NOMBRE CLIENTE -->
+                        <div class="col-12">
+                            <label class="form-label"><i class="fa-solid fa-user" style="color:#7c3aed;"></i> Nombre del Cliente</label>
+                            <div style="position:relative;">
+                                <input type="text" class="form-control" id="vNombreInput" name="clienteNombre"
+                                       placeholder="Se completará automáticamente" required
+                                       style="padding-right:38px;">
+                                <!-- Botón X para limpiar -->
+                                <button type="button" id="btnLimpiarCliente"
+                                        onclick="limpiarCliente()"
+                                        style="display:none;position:absolute;right:8px;top:50%;
+                                               transform:translateY(-50%);background:rgba(239,68,68,.2);
+                                               border:1px solid rgba(239,68,68,.4);color:#f87171;
+                                               width:26px;height:26px;border-radius:6px;cursor:pointer;
+                                               font-size:13px;display:none;align-items:center;
+                                               justify-content:center;" title="Quitar datos del cliente">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- SERIE / NÚMERO / FORMA PAGO -->
+                        <div class="col-md-5">
+                            <label class="form-label">Serie de Comprobante</label>
+                            <select class="form-select" name="serie" id="serieSelect" onchange="cargarNumero()">
+                                <option value="NOTA DE VENTA (N001)">NOTA DE VENTA (N001)</option>
+                                <option value="BOLETA (B001)">BOLETA (B001)</option>
+                                <option value="FACTURA (F001)">FACTURA (F001)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Número de Venta</label>
+                            <input type="text" class="form-control" id="vNumero" readonly
+                                   style="background:rgba(255,255,255,.04);color:#93c5fd;font-weight:700;">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Forma de Pago</label>
+                            <select class="form-select" name="formaPago" id="formaPagoSel" onchange="toggleCredito()">
+                                <option value="CONTADO">Contado</option>
+                                <option value="CREDITO">Crédito</option>
+                            </select>
+                        </div>
+
+                        <!-- SECCIÓN CRÉDITO -->
+                        <div class="col-12" id="seccionCredito" style="display:none;">
+                            <div class="credito-box">
+                                <div class="d-flex align-items-center gap-2 mb-3">
+                                    <i class="fa-solid fa-coins" style="color:#f59e0b;"></i>
+                                    <span style="font-weight:700;color:#fcd34d;">Configuración de Crédito</span>
+                                    <input type="hidden" name="esCredito" id="hiddenCredito" value="false">
+                                </div>
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <label class="form-label">Pago Inicial (S/)</label>
+                                        <input type="number" class="form-control" name="pagoInicial" id="vPagoInicial"
+                                               placeholder="0.00" step="0.01" min="0" oninput="calcularDeuda()">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">N° de Cuotas</label>
+                                        <input type="number" class="form-control" name="nCuotas" id="vNCuotas"
+                                               placeholder="1" min="1" max="24" value="1" oninput="generarFechasCuotas()">
+                                    </div>
+                                    <div class="col-md-5">
+                                        <label class="form-label">Intervalo de Pago</label>
+                                        <select class="form-select" name="intervaloPago" id="vIntervalo" onchange="generarFechasCuotas()">
+                                            <option value="MENSUAL">Mensual (30 días)</option>
+                                            <option value="QUINCENAL">Quincenal (15 días)</option>
+                                            <option value="SEMANAL">Semanal (7 días)</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12 d-flex align-items-center gap-3">
+                                        <span style="color:#94a3b8;font-size:13px;">Deuda:</span>
+                                        <span id="vDeudaLabel" style="color:#f87171;font-weight:800;font-size:16px;">S/ 0.00</span>
+                                    </div>
+                                    <!-- FECHAS CUOTAS -->
+                                    <div class="col-12" id="fechasCuotasWrap"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- AGREGAR PRODUCTO -->
+                        <div class="col-12">
+                            <label class="form-label"><i class="fa-solid fa-box" style="color:#10b981;"></i> Agregar Producto</label>
+                            <div style="position:relative;">
+                                <input type="text" class="form-control" id="prodSearch"
+                                       placeholder="Busca y agrega un producto..." oninput="buscarProductos(this.value)" autocomplete="off">
+                                <div id="prodAutocomplete" class="autocomplete-list" style="display:none;"></div>
+                            </div>
+                        </div>
+
+                        <!-- TABLA PRODUCTOS -->
+                        <div class="col-12" id="prodTableWrap" style="display:none;">
+                            <table class="prod-table">
+                                <thead>
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th>Precio</th>
+                                        <th>Cantidad</th>
+                                        <th>Subtotal</th>
+                                        <th>Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="prodTbody"></tbody>
+                            </table>
+                            <div style="text-align:right;margin-top:12px;font-size:18px;font-weight:800;color:white;">
+                                Total: <span id="vTotal" style="color:#3b82f6;">S/ 0.00</span>
+                            </div>
+                        </div>
+
+                    </div><!-- /row -->
+                </div><!-- /body -->
+
+                <!-- Hidden inputs for productos -->
+                <div id="hiddenProductos"></div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn-cancel" data-bs-dismiss="modal">
+                        <i class="fa-solid fa-xmark"></i> Cancelar
+                    </button>
+                    <button type="submit" class="btn-save" onclick="prepararEnvio()">
+                        <i class="fa-solid fa-floppy-disk"></i> Guardar Venta
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ============= MODAL CRONOGRAMA DE PAGOS (unificado) ============= -->
+<div class="modal fade" id="modalCronograma" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="background:#0f172a;border:1px solid rgba(255,255,255,.1);border-radius:20px;overflow:hidden;">
+
+            <!-- HEADER -->
+            <div style="background:linear-gradient(135deg,#1e3a8a 0%,#312e81 50%,#4c1d95 100%);
+                        padding:20px 26px;display:flex;justify-content:space-between;align-items:center;">
+                <div>
+                    <div style="font-size:10px;color:rgba(255,255,255,.55);letter-spacing:3px;font-weight:700;text-transform:uppercase;margin-bottom:4px;">
+                        Cronograma de Pagos
+                    </div>
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <i class="fa-solid fa-file-invoice-dollar" style="font-size:20px;color:#93c5fd;"></i>
+                        <span id="cronComprobante" style="font-size:20px;font-weight:900;color:white;letter-spacing:1px;">—</span>
+                    </div>
+                </div>
+                <button type="button" data-bs-dismiss="modal"
+                        style="background:rgba(255,255,255,.15);border:none;color:white;border-radius:10px;
+                               width:34px;height:34px;cursor:pointer;font-size:15px;line-height:1;transition:.2s;"
+                        onmouseover="this.style.background='rgba(255,255,255,.25)'"
+                        onmouseout="this.style.background='rgba(255,255,255,.15)'">✕</button>
+            </div>
+
+            <!-- BODY -->
+            <div style="padding:24px;max-height:72vh;overflow-y:auto;" id="cronBody">
+
+                <!-- === TARJETAS RESUMEN === -->
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:22px;">
+                    <!-- Cliente -->
+                    <div style="background:rgba(30,58,138,.18);border:1px solid rgba(59,130,246,.25);border-radius:14px;padding:14px 16px;">
+                        <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+                            <span style="background:rgba(59,130,246,.2);border-radius:8px;width:28px;height:28px;
+                                         display:flex;align-items:center;justify-content:center;font-size:13px;">👤</span>
+                            <span style="font-size:10px;color:#93c5fd;text-transform:uppercase;letter-spacing:1.5px;font-weight:700;">Cliente</span>
+                        </div>
+                        <div id="cronCliente" style="font-size:13px;font-weight:700;color:white;line-height:1.4;">—</div>
+                        <div id="cronClienteDoc" style="font-size:11px;color:#64748b;margin-top:2px;">—</div>
+                    </div>
+                    <!-- Total -->
+                    <div style="background:rgba(17,24,39,.4);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:14px 16px;">
+                        <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+                            <span style="background:rgba(99,102,241,.2);border-radius:8px;width:28px;height:28px;
+                                         display:flex;align-items:center;justify-content:center;font-size:13px;">💰</span>
+                            <span style="font-size:10px;color:#a5b4fc;text-transform:uppercase;letter-spacing:1.5px;font-weight:700;">Total Venta</span>
+                        </div>
+                        <div id="cronTotal" style="font-size:20px;font-weight:900;color:#a5b4fc;">S/ 0.00</div>
+                        <div id="cronFecha" style="font-size:11px;color:#64748b;margin-top:2px;">—</div>
+                    </div>
+                    <!-- Pendiente -->
+                    <div id="cronDeudaCard" style="background:rgba(120,53,15,.15);border:1px solid rgba(245,158,11,.25);border-radius:14px;padding:14px 16px;">
+                        <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+                            <span style="background:rgba(245,158,11,.2);border-radius:8px;width:28px;height:28px;
+                                         display:flex;align-items:center;justify-content:center;font-size:13px;">⏳</span>
+                            <span id="cronDeudaLabel" style="font-size:10px;color:#fbbf24;text-transform:uppercase;letter-spacing:1.5px;font-weight:700;">Pendiente</span>
+                        </div>
+                        <div id="cronDeuda" style="font-size:20px;font-weight:900;color:#fbbf24;">S/ 0.00</div>
+                        <div id="cronDeudaSub" style="font-size:11px;color:#64748b;margin-top:2px;">—</div>
+                    </div>
+                </div>
+
+                <!-- === DETALLES DEL CRÉDITO === -->
+                <div id="cronCreditoSection" style="display:none;background:rgba(17,24,39,.5);
+                     border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px 18px;margin-bottom:22px;">
+                    <p style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:2px;font-weight:700;margin:0 0 14px;">
+                        <i class="fa-solid fa-chart-line" style="color:#818cf8;margin-right:6px;"></i>Detalles del Crédito
+                    </p>
+                    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;">
+                        <div style="text-align:center;">
+                            <div style="font-size:10px;color:#64748b;margin-bottom:4px;">Pago Inicial</div>
+                            <div id="cronPagoInicial" style="font-size:14px;font-weight:800;color:#60a5fa;">S/ 0.00</div>
+                        </div>
+                        <div style="text-align:center;border-left:1px solid rgba(255,255,255,.06);padding-left:10px;">
+                            <div style="font-size:10px;color:#64748b;margin-bottom:4px;">A Financiar</div>
+                            <div id="cronAFinanciar" style="font-size:14px;font-weight:800;color:#a5b4fc;">S/ 0.00</div>
+                        </div>
+                        <div style="text-align:center;border-left:1px solid rgba(255,255,255,.06);padding-left:10px;">
+                            <div style="font-size:10px;color:#64748b;margin-bottom:4px;">N° Cuotas</div>
+                            <div id="cronNCuotas" style="font-size:14px;font-weight:800;color:white;">0</div>
+                        </div>
+                        <div style="text-align:center;border-left:1px solid rgba(255,255,255,.06);padding-left:10px;">
+                            <div style="font-size:10px;color:#64748b;margin-bottom:4px;">Por Cuota</div>
+                            <div id="cronMontoCuota" style="font-size:14px;font-weight:800;color:#6ee7b7;">S/ 0.00</div>
+                        </div>
+                        <div style="text-align:center;border-left:1px solid rgba(255,255,255,.06);padding-left:10px;">
+                            <div style="font-size:10px;color:#64748b;margin-bottom:4px;">Intervalo</div>
+                            <div id="cronIntervalo" style="font-size:14px;font-weight:800;color:#f0abfc;">—</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- === CUOTAS PROGRAMADAS === -->
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+                    <p style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:2px;font-weight:700;margin:0;">
+                        <i class="fa-solid fa-list-check" style="color:#818cf8;margin-right:6px;"></i>Cuotas Programadas
+                    </p>
+                    <div id="cronProgreso" style="font-size:12px;color:#64748b;"></div>
+                </div>
+
+                <div id="cronCuotasGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                    <!-- generado dinámicamente -->
+                </div>
+
+                <!-- LIQUIDADO -->
+                <div id="cronLiquidado" style="display:none;background:rgba(5,150,105,.1);
+                     border:1px solid rgba(16,185,129,.3);border-radius:14px;padding:14px 18px;margin-top:16px;
+                     display:none;align-items:center;gap:10px;">
+                    <i class="fa-solid fa-circle-check" style="font-size:20px;color:#6ee7b7;"></i>
+                    <div>
+                        <div style="font-weight:800;color:#6ee7b7;font-size:14px;">¡Deuda Liquidada!</div>
+                        <div style="font-size:12px;color:#94a3b8;margin-top:2px;">Todas las cuotas han sido canceladas.</div>
+                    </div>
+                </div>
+
+            </div><!-- /cronBody -->
+
+            <!-- FOOTER -->
+            <div style="padding:14px 24px;border-top:1px solid rgba(255,255,255,.07);
+                        display:flex;justify-content:flex-end;">
+                <button type="button" class="btn-cancel" data-bs-dismiss="modal">
+                    <i class="fa-solid fa-xmark"></i> Cerrar
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- ============= MODAL PAGAR CUOTA ============= -->
+<div class="modal fade" id="modalPagar" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background:#0f172a;border:1px solid rgba(255,255,255,.1);border-radius:20px;overflow:hidden;">
+
+            <!-- HEADER -->
+            <div style="background:linear-gradient(135deg,#2563eb,#7c3aed);padding:18px 24px;display:flex;justify-content:space-between;align-items:center;">
+                <h5 style="margin:0;color:white;font-weight:800;font-size:16px;">
+                    <i class="fa-solid fa-credit-card"></i> &nbsp;Registrar Pago de Cuota
+                </h5>
+                <button type="button" data-bs-dismiss="modal"
+                        style="background:rgba(255,255,255,.2);border:none;color:white;border-radius:8px;
+                               width:32px;height:32px;cursor:pointer;font-size:14px;">✕</button>
+            </div>
+
+            <div style="padding:24px;">
+                <input type="hidden" id="pagarCuotaId">
+                <input type="hidden" id="pagarMontoReal">
+
+                <!-- INFO CUOTA -->
+                <div style="background:linear-gradient(135deg,rgba(37,99,235,.15),rgba(124,58,237,.15));
+                            border:1px solid rgba(99,102,241,.3);border-radius:14px;
+                            padding:16px 20px;display:grid;grid-template-columns:1fr 1fr;
+                            margin-bottom:20px;">
+                    <div>
+                        <div style="font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:2px;font-weight:700;">Cuota Nº</div>
+                        <div id="pagarNumeroCuota" style="font-size:28px;font-weight:900;color:white;margin-top:4px;">1</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:2px;font-weight:700;">Monto a Pagar</div>
+                        <div id="pagarMonto" style="font-size:24px;font-weight:900;color:#60a5fa;margin-top:4px;">S/ 0.00</div>
+                    </div>
+                </div>
+
+                <!-- TIPO DE PAGO -->
+                <div style="margin-bottom:18px;">
+                    <label style="font-size:12px;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;font-weight:700;display:block;margin-bottom:10px;">
+                        Tipo de Pago
+                    </label>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                        <button id="btnCompleto" onclick="seleccionarTipo('COMPLETO')"
+                                style="padding:12px;border-radius:12px;border:2px solid #2563eb;
+                                       background:rgba(37,99,235,.2);color:white;font-weight:700;
+                                       cursor:pointer;font-size:13px;transition:.2s;">
+                            <i class="fa-solid fa-circle-check" style="color:#60a5fa;"></i> &nbsp;Completo
+                        </button>
+                        <button id="btnMixto" onclick="seleccionarTipo('MIXTO')"
+                                style="padding:12px;border-radius:12px;border:2px solid rgba(255,255,255,.15);
+                                       background:rgba(255,255,255,.04);color:#94a3b8;font-weight:700;
+                                       cursor:pointer;font-size:13px;transition:.2s;">
+                            <i class="fa-solid fa-layer-group"></i> &nbsp;Mixto
+                        </button>
+                    </div>
+                    <!-- PANEL MIXTO: múltiples modalidades -->
+                    <div id="campoMixto" style="display:none;margin-top:14px;">
+
+                        <!-- Aviso info -->
+                        <div style="background:rgba(37,99,235,.1);border:1px solid rgba(99,102,241,.3);
+                                    border-radius:10px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:8px;">
+                            <i class="fa-solid fa-circle-info" style="color:#60a5fa;font-size:14px;"></i>
+                            <span style="font-size:12px;color:#93c5fd;">
+                                <strong>Pago Mixto:</strong> Distribuí el monto total entre múltiples modalidades
+                            </span>
+                        </div>
+
+                        <!-- Contador TOTAL / DISTRIBUIDO / SALDO -->
+                        <div style="background:rgba(15,23,42,.6);border:1px solid rgba(255,255,255,.1);
+                                    border-radius:12px;padding:12px 16px;margin-bottom:12px;
+                                    display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+                            <div>
+                                <div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:1.5px;font-weight:700;margin-bottom:4px;">Total</div>
+                                <div id="mixtoTotal" style="font-size:15px;font-weight:900;color:#94a3b8;">S/ 0.00</div>
+                            </div>
+                            <div style="border-left:1px solid rgba(255,255,255,.07);padding-left:12px;">
+                                <div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:1.5px;font-weight:700;margin-bottom:4px;">Distribuido</div>
+                                <div id="mixtoDistribuido" style="font-size:15px;font-weight:900;color:#60a5fa;">S/ 0.00</div>
+                            </div>
+                            <div style="border-left:1px solid rgba(255,255,255,.07);padding-left:12px;">
+                                <div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:1.5px;font-weight:700;margin-bottom:4px;">Saldo</div>
+                                <div id="mixtoSaldo" style="font-size:15px;font-weight:900;color:#f87171;">S/ 0.00</div>
+                            </div>
+                        </div>
+
+                        <!-- Filas de modalidades -->
+                        <div id="mixtoFilas" style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px;"></div>
+
+                        <!-- Botón agregar fila -->
+                        <button type="button" onclick="mixtoAgregarFila()"
+                                style="width:100%;padding:10px;border-radius:10px;border:1px dashed rgba(99,102,241,.5);
+                                       background:rgba(99,102,241,.07);color:#818cf8;font-weight:700;font-size:13px;
+                                       cursor:pointer;transition:.2s;"
+                                onmouseover="this.style.background='rgba(99,102,241,.15)'"
+                                onmouseout="this.style.background='rgba(99,102,241,.07)'">
+                            <i class="fa-solid fa-plus"></i> &nbsp;Agregar Modalidad
+                        </button>
+
+                        <div id="errMixto" style="color:#f87171;font-size:12px;margin-top:8px;display:none;"></div>
+                    </div>
+                </div>
+
+                <!-- MODALIDAD (solo Completo) -->
+                <div id="wrapMedioCompleto" style="margin-bottom:16px;">
+                    <label style="font-size:12px;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;font-weight:700;display:block;margin-bottom:8px;">
+                        Modalidad de Pago
+                    </label>
+                    <select id="pagarMedio"
+                            style="width:100%;padding:11px;border-radius:10px;border:1px solid rgba(255,255,255,.15);
+                                   background:#1e293b;color:white;font-size:14px;">
+                        <option value="">Seleccionar modalidad...</option>
+                        <option value="EFECTIVO">💵 Efectivo</option>
+                        <option value="TRANSFERENCIA">🏦 Transferencia Bancaria</option>
+                        <option value="YAPE">📱 Yape</option>
+                        <option value="TARJETA_DEBITO">💳 Tarjeta Débito</option>
+                        <option value="TARJETA_CREDITO">💳 Tarjeta Crédito</option>
+                        <option value="CHEQUE">📄 Cheque</option>
+                        <option value="OTRO">📋 Otro</option>
+                    </select>
+                    <div id="errMedio" style="color:#f87171;font-size:12px;margin-top:4px;display:none;">
+                        Selecciona una modalidad de pago.
+                    </div>
+                </div>
+
+                <!-- REFERENCIA -->
+                <div style="margin-bottom:16px;">
+                    <label style="font-size:12px;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;font-weight:700;display:block;margin-bottom:8px;">
+                        Número de Transacción / Referencia
+                    </label>
+                    <input type="text" id="pagarReferencia" placeholder="Ej: YAPE123456, TRANSF789"
+                           style="width:100%;padding:11px;border-radius:10px;border:1px solid rgba(255,255,255,.15);
+                                  background:#1e293b;color:white;font-size:14px;">
+                </div>
+
+                <!-- OBSERVACIONES -->
+                <div>
+                    <label style="font-size:12px;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;font-weight:700;display:block;margin-bottom:8px;">
+                        Observaciones <span style="color:#475569;font-weight:400;">(Opcional)</span>
+                    </label>
+                    <textarea id="pagarObservacion" rows="3" placeholder="Agregar notas sobre este pago..."
+                              style="width:100%;padding:11px;border-radius:10px;border:1px solid rgba(255,255,255,.15);
+                                     background:#1e293b;color:white;font-size:14px;resize:vertical;"></textarea>
+                </div>
+            </div>
+
+            <!-- FOOTER -->
+            <div style="padding:16px 24px;border-top:1px solid rgba(255,255,255,.08);display:flex;justify-content:flex-end;gap:10px;">
+                <button type="button" data-bs-dismiss="modal" class="btn-cancel">
+                    <i class="fa-solid fa-xmark"></i> Cancelar
+                </button>
+                <button type="button" onclick="confirmarPago()" class="btn-save">
+                    <i class="fa-solid fa-check"></i> Guardar Pago
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const modalVenta    = new bootstrap.Modal(document.getElementById('modalVenta'));
+const modalCronograma = new bootstrap.Modal(document.getElementById('modalCronograma'));
+const modalPagar    = new bootstrap.Modal(document.getElementById('modalPagar'));
+
+let productos = []; // lista de productos agregados
+let ventaActivaId = null;
+
+// ===================== ABRIR NUEVA VENTA =====================
+function abrirNuevaVenta() {
+    // Limpiar y desbloquear campos cliente
+    const docInput    = document.getElementById('vDocInput');
+    const nombreInput = document.getElementById('vNombreInput');
+    const btnX        = document.getElementById('btnLimpiarCliente');
+    docInput.value = ''; docInput.readOnly = false; docInput.style.background = '';
+    nombreInput.value = ''; nombreInput.readOnly = false;
+    nombreInput.style.background = ''; nombreInput.style.color = ''; nombreInput.style.borderColor = '';
+    if (btnX) btnX.style.display = 'none';
+    document.getElementById('vConsultaStatus').textContent = '';
+    document.getElementById('vConsultaStatus').className = '';
+    document.getElementById('vPagoInicial').value = '';
+    document.getElementById('vNCuotas').value = 1;
+    document.getElementById('vDeudaLabel').textContent = 'S/ 0.00';
+    document.getElementById('fechasCuotasWrap').innerHTML = '';
+    document.getElementById('seccionCredito').style.display = 'none';
+    document.getElementById('hiddenCredito').value = 'false';
+    document.getElementById('formaPagoSel').value = 'CONTADO';
+    document.getElementById('prodSearch').value = '';
+    productos = [];
+    renderProductos();
+    cargarNumero();
+    modalVenta.show();
+}
+
+// ===================== CARGAR NÚMERO DOCUMENTO =====================
+async function cargarNumero() {
+    const serie = document.getElementById('serieSelect').value;
+    const res = await fetch('/ventas/api/siguiente-numero?serie=' + encodeURIComponent(serie));
+    const d = await res.json();
+    document.getElementById('vNumero').value = d.numero;
+}
+
+// ===================== CONSULTAR DNI/RUC =====================
+async function consultarVenta() {
+    const doc = document.getElementById('vDocInput').value.trim();
+    const status = document.getElementById('vConsultaStatus');
+    if (doc.length !== 8 && doc.length !== 11) {
+        status.className = 'c-err'; status.textContent = '⚠ Ingresa 8 (DNI) o 11 (RUC) dígitos'; return;
+    }
+    status.className = 'c-load'; status.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Consultando...';
+    const res = await fetch('/ventas/api/consultar?documento=' + doc);
+    const d = await res.json();
+    if (d.success) {
+        const nombreInput = document.getElementById('vNombreInput');
+        nombreInput.value = d.nombre;
+        nombreInput.readOnly = true;
+        nombreInput.style.background = 'rgba(99,102,241,.08)';
+        nombreInput.style.color = '#a5b4fc';
+        nombreInput.style.borderColor = 'rgba(99,102,241,.4)';
+        // Mostrar botón X
+        const btnX = document.getElementById('btnLimpiarCliente');
+        btnX.style.display = 'flex';
+        // Bloquear campo DNI
+        document.getElementById('vDocInput').readOnly = true;
+        document.getElementById('vDocInput').style.background = 'rgba(99,102,241,.08)';
+        status.className = 'c-ok'; status.innerHTML = '<i class="fa-solid fa-check-circle"></i> ' + d.nombre;
+    } else {
+        status.className = 'c-err'; status.textContent = '✗ ' + d.mensaje;
+    }
+}
+
+function autoConsultarVenta(val) {
+    if (val.length === 8 || val.length === 11) consultarVenta();
+}
+
+function limpiarCliente() {
+    const nombreInput = document.getElementById('vNombreInput');
+    const docInput    = document.getElementById('vDocInput');
+    const btnX        = document.getElementById('btnLimpiarCliente');
+    // Limpiar nombre
+    nombreInput.value = '';
+    nombreInput.readOnly = false;
+    nombreInput.style.background = '';
+    nombreInput.style.color = '';
+    nombreInput.style.borderColor = '';
+    // Limpiar DNI y desbloquear
+    docInput.value = '';
+    docInput.readOnly = false;
+    docInput.style.background = '';
+    // Ocultar X
+    btnX.style.display = 'none';
+    // Limpiar status
+    document.getElementById('vConsultaStatus').textContent = '';
+    document.getElementById('vConsultaStatus').className = '';
+    docInput.focus();
+}
+
+// ===================== TOGGLE CRÉDITO =====================
+function toggleCredito() {
+    const sc = document.getElementById('seccionCredito');
+    const hc = document.getElementById('hiddenCredito');
+    if (document.getElementById('formaPagoSel').value === 'CREDITO') {
+        sc.style.display = 'block'; hc.value = 'true'; calcularDeuda();
+    } else {
+        sc.style.display = 'none'; hc.value = 'false';
+    }
+}
+
+// ===================== CALCULAR DEUDA =====================
+function calcularDeuda() {
+    const total = productos.reduce((s, p) => s + p.precio * p.cantidad, 0);
+    const inicial = parseFloat(document.getElementById('vPagoInicial').value) || 0;
+    const deuda = Math.max(0, total - inicial);
+    document.getElementById('vDeudaLabel').textContent = 'S/ ' + deuda.toFixed(2);
+    generarFechasCuotas();
+}
+
+// ===================== GENERAR FECHAS CUOTAS =====================
+function getHoyStr() {
+    return new Date().toISOString().split('T')[0];
+}
+
+function generarFechasCuotas() {
+    const n        = parseInt(document.getElementById('vNCuotas').value) || 1;
+    const intervalo = document.getElementById('vIntervalo').value;
+    const dias     = intervalo === 'SEMANAL' ? 7 : intervalo === 'QUINCENAL' ? 15 : 30;
+    const wrap     = document.getElementById('fechasCuotasWrap');
+    if (n < 1 || n > 12) { wrap.innerHTML = ''; return; }
+
+    const minDate = getHoyStr(); // mínimo = hoy
+
+    let html = '<div class="row g-2 mt-1"><p style="color:#94a3b8;font-size:12px;margin-bottom:4px;">Fechas de Pago Programadas</p>';
+    let fecha = new Date();
+    for (let i = 1; i <= n; i++) {
+        fecha.setDate(fecha.getDate() + dias);
+        const val = fecha.toISOString().split('T')[0];
+        html += `<div class="col-md-4">
+            <label class="form-label" style="font-size:11px;">Fecha Cuota ${i}</label>
+            <input type="date" class="form-control" id="fechaCuota${i}" value="${val}"
+                   min="${minDate}" style="font-size:12px;"
+                   onchange="validarFechaCuota(this, ${i})"
+                   onblur="validarFechaCuota(this, ${i})"
+                   oninput="validarFechaCuota(this, ${i})">
+        </div>`;
+    }
+    html += '</div>';
+    wrap.innerHTML = html;
+}
+
+function validarFechaCuota(input, num) {
+    const minDate = getHoyStr(); // no permitir fechas anteriores a hoy
+    if (!input.value || input.value < minDate) {
+        input.style.borderColor = '#ef4444';
+        input.setCustomValidity('La fecha de la cuota ' + num + ' no puede ser anterior a hoy.');
+        input.reportValidity();
+        input.value = minDate;
+        input.style.borderColor = '';
+        return;
+    }
+    // Validar orden: cada cuota debe ser posterior a la anterior
+    if (num > 1) {
+        const anterior = document.getElementById('fechaCuota' + (num - 1));
+        if (anterior && input.value <= anterior.value) {
+            input.style.borderColor = '#ef4444';
+            input.setCustomValidity('La cuota ' + num + ' debe ser posterior a la cuota ' + (num - 1) + '.');
+            input.reportValidity();
+            const sigDia = new Date(anterior.value + 'T00:00:00');
+            sigDia.setDate(sigDia.getDate() + 1);
+            input.value = sigDia.toISOString().split('T')[0];
+            input.style.borderColor = '';
+            return;
+        }
+    }
+    input.setCustomValidity('');
+    input.style.borderColor = '';
+}
+
+// ===================== BUSCAR PRODUCTOS =====================
+let searchTimer;
+async function buscarProductos(q) {
+    clearTimeout(searchTimer);
+    const ac = document.getElementById('prodAutocomplete');
+    if (!q.trim()) { ac.style.display = 'none'; return; }
+    searchTimer = setTimeout(async () => {
+        const res = await fetch('/ventas/api/productos?q=' + encodeURIComponent(q));
+        const list = await res.json();
+        if (!list.length) { ac.style.display = 'none'; return; }
+        ac.innerHTML = list.map(p =>
+            `<div class="autocomplete-item" onclick="agregarProducto(${p.id},'${p.nombre.replace(/'/g,"\\'")}',${p.precio},${p.stock})">
+                <strong>${p.nombre}</strong> — S/ ${parseFloat(p.precio).toFixed(2)}
+                <span style="color:#64748b;font-size:11px;"> (Stock: ${p.stock})</span>
+            </div>`
+        ).join('');
+        ac.style.display = 'block';
+    }, 300);
+}
+
+function agregarProducto(id, nombre, precio, stock) {
+    document.getElementById('prodAutocomplete').style.display = 'none';
+    document.getElementById('prodSearch').value = '';
+    const ex = productos.find(p => p.id === id);
+    if (ex) { ex.cantidad++; } else { productos.push({id, nombre, precio: parseFloat(precio), cantidad: 1, stock}); }
+    renderProductos();
+    calcularDeuda();
+}
+
+function cambiarCantidad(id, val) {
+    const p = productos.find(p => p.id === id);
+    if (!p) return;
+    let cant = Math.max(1, parseInt(val) || 1);
+    if (cant > p.stock) {
+        cant = p.stock;
+        Swal.fire({
+            icon: 'warning',
+            title: 'Stock máximo alcanzado',
+            text: `Solo hay ${p.stock} unidades disponibles de "${p.nombre}".`,
+            background: '#0f172a',
+            color: 'white',
+            confirmButtonColor: '#6366f1',
+            timer: 2500,
+            showConfirmButton: false
+        });
+    }
+    p.cantidad = cant;
+    renderProductos();
+    calcularDeuda();
+}
+
+function quitarProducto(id) {
+    productos = productos.filter(p => p.id !== id);
+    renderProductos(); calcularDeuda();
+}
+
+function renderProductos() {
+    const tbody = document.getElementById('prodTbody');
+    const wrap  = document.getElementById('prodTableWrap');
+    const total = productos.reduce((s, p) => s + p.precio * p.cantidad, 0);
+    document.getElementById('vTotal').textContent = 'S/ ' + total.toFixed(2);
+    if (!productos.length) { wrap.style.display = 'none'; tbody.innerHTML = ''; return; }
+    wrap.style.display = 'block';
+    tbody.innerHTML = productos.map(p => `
+        <tr>
+            <td>${p.nombre}</td>
+            <td>S/ ${p.precio.toFixed(2)}</td>
+            <td><input type="number" style="width:70px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);
+                color:white;border-radius:8px;padding:4px 8px;font-size:12px;"
+                value="${p.cantidad}" min="1" onchange="cambiarCantidad(${p.id}, this.value)"></td>
+            <td style="color:#3b82f6;font-weight:700;">S/ ${(p.precio * p.cantidad).toFixed(2)}</td>
+            <td><button type="button" class="btn-rm" onclick="quitarProducto(${p.id})"><i class="fa-solid fa-trash"></i></button></td>
+        </tr>`).join('');
+}
+
+// Cerrar autocomplete al click fuera
+document.addEventListener('click', e => {
+    if (!e.target.closest('#prodSearch') && !e.target.closest('#prodAutocomplete'))
+        document.getElementById('prodAutocomplete').style.display = 'none';
+});
+
+// ===================== PREPARAR ENVÍO =====================
+function prepararEnvio() {
+    const wrap = document.getElementById('hiddenProductos');
+    wrap.innerHTML = '';
+    if (!productos.length) { event.preventDefault(); Swal.fire({icon:'warning',title:'Agrega al menos un producto',background:'#0f172a',color:'white'}); return false; }
+
+    // Validar pago inicial en crédito
+    const esCredito = document.getElementById('hiddenCredito').value === 'true';
+    if (esCredito) {
+        const total    = productos.reduce((s, p) => s + p.precio * p.cantidad, 0);
+        const inicial  = parseFloat(document.getElementById('vPagoInicial').value) || 0;
+        if (inicial >= total) {
+            event.preventDefault();
+            Swal.fire({
+                icon: 'error',
+                title: 'Pago inicial inválido',
+                text: `El pago inicial (S/ ${inicial.toFixed(2)}) no puede ser igual o mayor al total (S/ ${total.toFixed(2)}). Si cubre el total, usa la forma de pago Contado.`,
+                background: '#0f172a',
+                color: 'white',
+                confirmButtonColor: '#6366f1'
+            });
+            return false;
+        }
+    }
+
+    // Validar stock disponible para cada producto
+    const sinStock = [];
+    productos.forEach(p => {
+        if (p.cantidad > p.stock) {
+            sinStock.push(`• ${p.nombre}: pedido ${p.cantidad}, disponible ${p.stock}`);
+        }
+    });
+    if (sinStock.length) {
+        event.preventDefault();
+        Swal.fire({
+            icon: 'error',
+            title: 'Stock insuficiente',
+            html: sinStock.join('<br>'),
+            background: '#0f172a',
+            color: 'white',
+            confirmButtonColor: '#6366f1'
+        });
+        return false;
+    }
+
+    productos.forEach(p => {
+        wrap.innerHTML += `<input type="hidden" name="productosId"       value="${p.id}">`;
+        wrap.innerHTML += `<input type="hidden" name="productosNombre"   value="${p.nombre}">`;
+        wrap.innerHTML += `<input type="hidden" name="productosPrecio"   value="${p.precio}">`;
+        wrap.innerHTML += `<input type="hidden" name="productosCantidad" value="${p.cantidad}">`;
+    });
+}
+
+// ===================== CRONOGRAMA UNIFICADO =====================
+async function verCuotas(id) {
+    ventaActivaId = id;
+    await cargarCronograma(id);
+    modalCronograma.show();
+}
+
+async function verHistorial(id) {
+    ventaActivaId = id;
+    await cargarCronograma(id);
+    modalCronograma.show();
+}
+
+async function cargarCronograma(id) {
+    // Spinner mientras carga
+    document.getElementById('cronCuotasGrid').innerHTML =
+        '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#64748b;">' +
+        '<i class="fa-solid fa-spinner fa-spin" style="font-size:24px;"></i>' +
+        '<div style="margin-top:10px;font-size:13px;">Cargando cronograma...</div></div>';
+    document.getElementById('cronComprobante').textContent = '...';
+
+    const res = await fetch('/ventas/detalle/' + id);
+    const d   = await res.json();
+
+    // ── HEADER ──
+    document.getElementById('cronComprobante').textContent = d.numeroDocumento || ('Venta #' + d.id);
+
+    // ── TARJETAS RESUMEN ──
+    document.getElementById('cronCliente').textContent    = d.clienteNombre || '—';
+    document.getElementById('cronClienteDoc').textContent = d.clienteDocumento || '';
+    document.getElementById('cronTotal').textContent      = 'S/ ' + parseFloat(d.total || 0).toFixed(2);
+    document.getElementById('cronFecha').textContent      = d.fecha || '';
+
+    const deuda = parseFloat(d.deuda || 0);
+    const totalVal = parseFloat(d.total || 0);
+    document.getElementById('cronDeuda').textContent = 'S/ ' + deuda.toFixed(2);
+    if (deuda === 0) {
+        document.getElementById('cronDeudaCard').style.background = 'rgba(5,150,105,.1)';
+        document.getElementById('cronDeudaCard').style.borderColor = 'rgba(16,185,129,.25)';
+        document.getElementById('cronDeuda').style.color = '#6ee7b7';
+        document.getElementById('cronDeudaLabel').style.color = '#6ee7b7';
+        document.getElementById('cronDeudaLabel').textContent = 'LIQUIDADO';
+        document.getElementById('cronDeudaSub').textContent = '✓ Totalmente pagado';
+    } else {
+        document.getElementById('cronDeudaCard').style.background = 'rgba(120,53,15,.15)';
+        document.getElementById('cronDeudaCard').style.borderColor = 'rgba(245,158,11,.25)';
+        document.getElementById('cronDeuda').style.color = '#fbbf24';
+        document.getElementById('cronDeudaLabel').style.color = '#fbbf24';
+        document.getElementById('cronDeudaLabel').textContent = 'PENDIENTE';
+        const pagado = totalVal - deuda;
+        document.getElementById('cronDeudaSub').textContent = 'Pagado: S/ ' + pagado.toFixed(2);
+    }
+
+    // ── DETALLES DEL CRÉDITO ──
+    const creditoSec = document.getElementById('cronCreditoSection');
+    if (d.esCredito && (d.nCuotas > 0 || (d.cuotas && d.cuotas.length > 0))) {
+        const pagoInicial  = parseFloat(d.pagoInicial || 0);
+        const aFinanciar   = totalVal - pagoInicial;
+        const montoCuota   = d.nCuotas > 0 ? (aFinanciar / d.nCuotas) : 0;
+        document.getElementById('cronPagoInicial').textContent = 'S/ ' + pagoInicial.toFixed(2);
+        document.getElementById('cronAFinanciar').textContent  = 'S/ ' + aFinanciar.toFixed(2);
+        document.getElementById('cronNCuotas').textContent     = d.nCuotas;
+        document.getElementById('cronMontoCuota').textContent  = 'S/ ' + montoCuota.toFixed(2);
+        document.getElementById('cronIntervalo').textContent   = d.intervaloPago || 'Mensual';
+        creditoSec.style.display = 'block';
+    } else {
+        creditoSec.style.display = 'none';
+    }
+
+    // ── CUOTAS GRID ──
+    const cuotas     = d.cuotas || [];
+    const pendientes = cuotas.filter(c => c.estado === 'PENDIENTE');
+    const pagadas    = cuotas.filter(c => c.estado === 'PAGADO');
+    const proximaNum = pendientes.length ? Math.min(...pendientes.map(c => c.numeroCuota)) : null;
+
+    // Progreso
+    document.getElementById('cronProgreso').textContent =
+        pagadas.length + ' pagada' + (pagadas.length !== 1 ? 's' : '') +
+        ' · ' + pendientes.length + ' pendiente' + (pendientes.length !== 1 ? 's' : '');
+
+    if (cuotas.length === 0) {
+        document.getElementById('cronCuotasGrid').innerHTML =
+            '<div style="grid-column:1/-1;text-align:center;padding:30px;color:#64748b;font-size:13px;">' +
+            'Esta venta no tiene cuotas registradas.</div>';
+    } else {
+        document.getElementById('cronCuotasGrid').innerHTML = cuotas.map(c => {
+            const pagada    = c.estado === 'PAGADO';
+            const esProxima = !pagada && c.numeroCuota === proximaNum;
+            const bloqueada = !pagada && !esProxima;
+
+            const bgColor     = pagada    ? 'rgba(5,150,105,.1)'    : (esProxima ? 'rgba(120,53,15,.18)' : 'rgba(30,41,59,.5)');
+            const borderColor = pagada    ? 'rgba(16,185,129,.3)'   : (esProxima ? 'rgba(245,158,11,.35)' : 'rgba(255,255,255,.07)');
+            const badgeBg     = pagada    ? 'rgba(16,185,129,.2)'   : (esProxima ? 'rgba(245,158,11,.2)' : 'rgba(100,116,139,.2)');
+            const badgeColor  = pagada    ? '#6ee7b7'               : (esProxima ? '#fbbf24' : '#94a3b8');
+            const badgeText   = pagada    ? '✓ PAGADA'              : (esProxima ? '⏳ PRÓXIMA' : '🔒 PENDIENTE');
+            const montoColor  = pagada    ? '#6ee7b7'               : '#60a5fa';
+
+            const extraInfo = pagada
+                ? `<div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.07);">
+                       <div style="font-size:10px;color:#94a3b8;">Pagado el</div>
+                       <div style="font-size:12px;color:#6ee7b7;font-weight:600;">${c.fechaPago || '—'}</div>
+                       ${c.medioPago ? `<div style="font-size:11px;color:#64748b;margin-top:2px;">${c.medioPago}</div>` : ''}
+                   </div>`
+                : (esProxima
+                    ? `<button onclick="abrirPagarDesdeCronograma(${c.id}, ${c.monto}, ${c.numeroCuota})"
+                           style="margin-top:10px;width:100%;padding:9px;border-radius:10px;border:none;
+                                  background:linear-gradient(135deg,#2563eb,#7c3aed);color:white;font-weight:700;
+                                  font-size:12px;cursor:pointer;transition:.2s;"
+                           onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+                           <i class="fa-solid fa-credit-card"></i> &nbsp;Pagar Cuota
+                       </button>`
+                    : `<div style="margin-top:8px;font-size:11px;color:#475569;">
+                           <i class="fa-solid fa-lock" style="margin-right:4px;"></i>Paga primero la cuota #${proximaNum}
+                       </div>`);
+
+            return `<div style="background:${bgColor};border:1px solid ${borderColor};
+                        border-radius:14px;padding:14px 16px;transition:.2s;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                    <span style="font-size:10px;color:#94a3b8;font-weight:700;letter-spacing:1px;">CUOTA N° ${c.numeroCuota}</span>
+                    <span style="font-size:10px;font-weight:800;padding:3px 10px;border-radius:20px;
+                        background:${badgeBg};color:${badgeColor};">${badgeText}</span>
+                </div>
+                <div style="font-size:20px;font-weight:900;color:${montoColor};margin-bottom:4px;">
+                    S/ ${parseFloat(c.monto).toFixed(2)}
+                </div>
+                <div style="font-size:11px;color:#64748b;">
+                    <i class="fa-regular fa-calendar" style="margin-right:4px;"></i>Vence: ${c.fechaVencimiento || '—'}
+                </div>
+                ${extraInfo}
+            </div>`;
+        }).join('');
+    }
+
+    // ── LIQUIDADO BANNER ──
+    const liq = document.getElementById('cronLiquidado');
+    if (deuda === 0 && cuotas.length > 0) {
+        liq.style.display = 'flex';
+    } else {
+        liq.style.display = 'none';
+    }
+}
+
+function abrirPagarDesdeCronograma(cuotaId, monto, numeroCuota) {
+    modalCronograma.hide();
+    setTimeout(() => abrirPagar(cuotaId, monto, numeroCuota), 350);
+}
+
+// ===================== PAGAR CUOTA =====================
+let tipoPagoActual = 'COMPLETO';
+
+function abrirPagar(cuotaId, monto, numeroCuota) {
+    document.getElementById('pagarCuotaId').value           = cuotaId;
+    document.getElementById('pagarMontoReal').value          = monto;
+    document.getElementById('pagarMonto').textContent        = 'S/ ' + parseFloat(monto).toFixed(2);
+    document.getElementById('pagarNumeroCuota').textContent  = numeroCuota || '—';
+    document.getElementById('pagarMedio').value              = '';
+    document.getElementById('pagarReferencia').value         = '';
+    document.getElementById('pagarObservacion').value        = '';
+    document.getElementById('errMedio').style.display        = 'none';
+    document.getElementById('errMixto').style.display        = 'none';
+    // Limpiar filas mixtas
+    document.getElementById('mixtoFilas').innerHTML = '';
+    mixtoIdCounter = 0;
+    seleccionarTipo('COMPLETO');
+    modalPagar.show();
+}
+
+function seleccionarTipo(tipo) {
+    tipoPagoActual = tipo;
+    const btnC  = document.getElementById('btnCompleto');
+    const btnM  = document.getElementById('btnMixto');
+    const campoM = document.getElementById('campoMixto');
+    const wrapC  = document.getElementById('wrapMedioCompleto');
+    if (tipo === 'COMPLETO') {
+        btnC.style.cssText += ';border-color:#2563eb;background:rgba(37,99,235,.2);color:white;';
+        btnM.style.cssText += ';border-color:rgba(255,255,255,.15);background:rgba(255,255,255,.04);color:#94a3b8;';
+        campoM.style.display = 'none';
+        wrapC.style.display  = 'block';
+    } else {
+        btnM.style.cssText += ';border-color:#7c3aed;background:rgba(124,58,237,.2);color:white;';
+        btnC.style.cssText += ';border-color:rgba(255,255,255,.15);background:rgba(255,255,255,.04);color:#94a3b8;';
+        campoM.style.display = 'block';
+        wrapC.style.display  = 'none';
+        // Inicializar contadores con monto real
+        const montoReal = parseFloat(document.getElementById('pagarMontoReal').value || 0);
+        document.getElementById('mixtoTotal').textContent       = 'S/ ' + montoReal.toFixed(2);
+        document.getElementById('mixtoDistribuido').textContent = 'S/ 0.00';
+        document.getElementById('mixtoSaldo').textContent       = 'S/ ' + montoReal.toFixed(2);
+        document.getElementById('mixtoSaldo').style.color       = '#f87171';
+        // Si no hay filas, agregar una por defecto
+        if (document.getElementById('mixtoFilas').children.length === 0) {
+            mixtoAgregarFila();
+        }
+    }
+}
+
+// ── Opciones de modalidad para el select de mixto ──
+const OPCIONES_MEDIO = [
+    {v:'',         l:'Seleccionar...'},
+    {v:'EFECTIVO',          l:'💵 Efectivo'},
+    {v:'TRANSFERENCIA',     l:'🏦 Transferencia'},
+    {v:'YAPE',              l:'📱 Yape'},
+    {v:'TARJETA_DEBITO',    l:'💳 Tarjeta Débito'},
+    {v:'TARJETA_CREDITO',   l:'💳 Tarjeta Crédito'},
+    {v:'CHEQUE',            l:'📄 Cheque'},
+    {v:'OTRO',              l:'📋 Otro'},
+];
+
+let mixtoIdCounter = 0;
+
+function mixtoAgregarFila() {
+    const id = ++mixtoIdCounter;
+    const opts = OPCIONES_MEDIO.map(o =>
+        `<option value="${o.v}">${o.l}</option>`).join('');
+
+    const fila = document.createElement('div');
+    fila.id = 'mixtoFila_' + id;
+    fila.style.cssText = 'background:rgba(30,41,59,.6);border:1px solid rgba(255,255,255,.1);' +
+        'border-radius:10px;padding:10px 12px;';
+    fila.innerHTML = `
+        <div style="display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;">
+            <div>
+                <div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:4px;">Modalidad</div>
+                <select onchange="mixtoActualizar()" data-fila="${id}"
+                    style="width:100%;padding:9px;border-radius:8px;border:1px solid rgba(255,255,255,.12);
+                           background:#0f172a;color:white;font-size:13px;">${opts}</select>
+            </div>
+            <div>
+                <div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:4px;">Monto (S/)</div>
+                <input type="number" min="0.01" step="0.01" placeholder="0.00"
+                    oninput="mixtoActualizar()" data-fila="${id}"
+                    style="width:88px;padding:9px;border-radius:8px;border:1px solid rgba(255,255,255,.12);
+                           background:#0f172a;color:#60a5fa;font-size:14px;font-weight:800;text-align:right;">
+            </div>
+            <div style="padding-top:18px;">
+                <button type="button" onclick="mixtoEliminarFila(${id})"
+                    style="width:34px;height:34px;border-radius:8px;border:none;
+                           background:rgba(239,68,68,.2);color:#f87171;cursor:pointer;font-size:14px;
+                           transition:.2s;"
+                    onmouseover="this.style.background='rgba(239,68,68,.35)'"
+                    onmouseout="this.style.background='rgba(239,68,68,.2)'">✕</button>
+            </div>
+        </div>`;
+    document.getElementById('mixtoFilas').appendChild(fila);
+    mixtoActualizar();
+}
+
+function mixtoEliminarFila(id) {
+    const fila = document.getElementById('mixtoFila_' + id);
+    if (fila) fila.remove();
+    mixtoActualizar();
+    // Asegurar al menos 1 fila
+    if (document.getElementById('mixtoFilas').children.length === 0) {
+        mixtoAgregarFila();
+    }
+}
+
+function mixtoActualizar() {
+    const montoReal   = parseFloat(document.getElementById('pagarMontoReal').value || 0);
+    const inputs      = document.querySelectorAll('#mixtoFilas input[type=number]');
+    let distribuido   = 0;
+    inputs.forEach(inp => { distribuido += parseFloat(inp.value || 0); });
+    const saldo = montoReal - distribuido;
+
+    document.getElementById('mixtoDistribuido').textContent = 'S/ ' + distribuido.toFixed(2);
+    document.getElementById('mixtoSaldo').textContent       = 'S/ ' + Math.max(saldo, 0).toFixed(2);
+
+    // Colorear saldo
+    const saldoEl = document.getElementById('mixtoSaldo');
+    if (Math.abs(saldo) < 0.01) {
+        saldoEl.style.color = '#6ee7b7';   // exacto = verde
+    } else if (saldo < 0) {
+        saldoEl.style.color = '#f87171';   // excedido = rojo
+    } else {
+        saldoEl.style.color = '#fbbf24';   // falta = ámbar
+    }
+}
+
+async function confirmarPago() {
+    const cuotaId    = document.getElementById('pagarCuotaId').value;
+    const referencia = document.getElementById('pagarReferencia').value.trim();
+    const obs        = document.getElementById('pagarObservacion').value.trim();
+    const montoReal  = parseFloat(document.getElementById('pagarMontoReal').value);
+
+    const errMixtoEl = document.getElementById('errMixto');
+    const errMedioEl = document.getElementById('errMedio');
+    errMixtoEl.style.display = 'none';
+    errMedioEl.style.display = 'none';
+
+    let medioFinal, montoPagadoFinal;
+
+    if (tipoPagoActual === 'COMPLETO') {
+        // ── modo COMPLETO: una sola modalidad ──
+        const medio = document.getElementById('pagarMedio').value;
+        if (!medio) {
+            errMedioEl.style.display = 'block';
+            return;
+        }
+        medioFinal      = medio;
+        montoPagadoFinal = montoReal;
+
+    } else {
+        // ── modo MIXTO: múltiples filas ──
+        const filas   = document.querySelectorAll('#mixtoFilas > div');
+        const partes  = [];
+        let totalDist = 0;
+        let valido    = true;
+
+        filas.forEach(fila => {
+            const sel  = fila.querySelector('select');
+            const inp  = fila.querySelector('input[type=number]');
+            const v    = sel ? sel.value : '';
+            const m    = parseFloat(inp ? inp.value : 0) || 0;
+            if (!v) { valido = false; return; }
+            if (m <= 0) { valido = false; return; }
+            partes.push(v + ':' + m.toFixed(2));
+            totalDist += m;
+        });
+
+        if (!valido || partes.length === 0) {
+            errMixtoEl.textContent = 'Completa todas las filas: selecciona modalidad y monto mayor a 0.';
+            errMixtoEl.style.display = 'block';
+            return;
+        }
+        if (Math.abs(totalDist - montoReal) > 0.01) {
+            errMixtoEl.textContent = `El total distribuido (S/ ${totalDist.toFixed(2)}) debe ser igual al monto de la cuota (S/ ${montoReal.toFixed(2)}).`;
+            errMixtoEl.style.display = 'block';
+            return;
+        }
+
+        // Serializar: "EFECTIVO:50.00,YAPE:26.00"
+        medioFinal       = partes.join(',');
+        montoPagadoFinal = montoReal;
+    }
+
+    const params = new URLSearchParams({
+        cuotaId,
+        medioPago:   medioFinal,
+        tipoPago:    tipoPagoActual,
+        referencia:  referencia,
+        observacion: obs,
+        montoPagado: montoPagadoFinal
+    });
+
+    const res = await fetch('/ventas/cuota/pagar', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: params.toString()
+    });
+    const d = await res.json();
+    if (d.success) {
+        modalPagar.hide();
+        Swal.fire({
+            icon:'success', title:'¡Pago registrado!',
+            html: '<span style="color:#94a3b8;font-size:14px;">La cuota fue marcada como pagada correctamente.</span>',
+            background:'#0f172a', color:'white',
+            timer:2000, showConfirmButton:false
+        }).then(async () => {
+            // Reabrir cronograma actualizado si había venta activa
+            if (ventaActivaId) {
+                await cargarCronograma(ventaActivaId);
+                modalCronograma.show();
+            } else {
+                location.reload();
+            }
+        });
+    } else {
+        Swal.fire({
+            icon:'warning',
+            title:'No se puede registrar',
+            text: d.mensaje,
+            background:'#0f172a', color:'#e2e8f0',
+            confirmButtonColor:'#6366f1'
+        });
+    }
+}
+
+// ===================== ELIMINAR / ANULAR =====================
+function eliminarVenta(id) {
+    Swal.fire({
+        title:'¿Anular venta?', text:'La venta quedará marcada como ANULADA.',
+        icon:'warning', showCancelButton:true,
+        confirmButtonColor:'#ef4444', cancelButtonColor:'#3b82f6',
+        confirmButtonText:'Sí, anular', cancelButtonText:'Cancelar',
+        background:'#0f172a', color:'#e2e8f0'
+    }).then(r => {
+        if (r.isConfirmed) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/ventas/anular/' + id;
+            document.body.appendChild(form);
+            form.submit();
+        }
+    });
+}
+
+// ===================== VER DETALLE =====================
+async function verDetalle(id) {
+    const res = await fetch('/ventas/detalle/' + id);
+    const d   = await res.json();
+
+    let detallesHtml = d.detalles && d.detalles.length
+        ? `<table style="width:100%;border-collapse:collapse;margin-top:8px;">
+            <thead><tr>
+                <th style="color:#93c5fd;font-size:11px;padding:6px 10px;text-align:left;">Producto</th>
+                <th style="color:#93c5fd;font-size:11px;padding:6px 10px;">Precio</th>
+                <th style="color:#93c5fd;font-size:11px;padding:6px 10px;">Cant.</th>
+                <th style="color:#93c5fd;font-size:11px;padding:6px 10px;">Subtotal</th>
+            </tr></thead><tbody>` +
+            d.detalles.map(det => `<tr>
+                <td style="padding:8px 10px;font-size:13px;">${det.productoNombre}</td>
+                <td style="padding:8px 10px;font-size:13px;text-align:center;">S/ ${parseFloat(det.precio).toFixed(2)}</td>
+                <td style="padding:8px 10px;font-size:13px;text-align:center;">${det.cantidad}</td>
+                <td style="padding:8px 10px;font-size:13px;font-weight:700;color:#3b82f6;">S/ ${parseFloat(det.subtotal).toFixed(2)}</td>
+            </tr>`).join('') +
+            `</tbody></table>`
+        : '<p style="color:#64748b;">Sin productos registrados.</p>';
+
+    Swal.fire({
+        title: `<span style="font-size:16px;color:#93c5fd;">${d.numeroDocumento}</span>`,
+        html: `
+            <div style="text-align:left;font-size:13px;color:#e2e8f0;">
+                <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+                    <span style="color:#94a3b8;">Cliente:</span>
+                    <strong>${d.clienteNombre}</strong>
+                </div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+                    <span style="color:#94a3b8;">Vendedor:</span>
+                    <span>${d.vendedor}</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+                    <span style="color:#94a3b8;">Fecha:</span>
+                    <span>${d.fecha}</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+                    <span style="color:#94a3b8;">Forma de pago:</span>
+                    <span>${d.formaPago}</span>
+                </div>
+                <hr style="border-color:rgba(255,255,255,.08);margin:10px 0;">
+                <p style="color:#93c5fd;font-weight:700;margin-bottom:6px;">Productos</p>
+                ${detallesHtml}
+                <hr style="border-color:rgba(255,255,255,.08);margin:10px 0;">
+                <div style="display:flex;justify-content:space-between;font-size:15px;font-weight:800;">
+                    <span>Total:</span>
+                    <span style="color:#3b82f6;">S/ ${parseFloat(d.total).toFixed(2)}</span>
+                </div>
+                ${parseFloat(d.deuda) > 0 ? `<div style="display:flex;justify-content:space-between;margin-top:6px;">
+                    <span style="color:#94a3b8;">Deuda restante:</span>
+                    <span style="color:#f87171;font-weight:700;">S/ ${parseFloat(d.deuda).toFixed(2)}</span>
+                </div>` : ''}
+            </div>`,
+        background: '#0f172a',
+        color: '#e2e8f0',
+        confirmButtonColor: '#2563eb',
+        confirmButtonText: 'Cerrar',
+        width: '550px'
+    });
+}
+
+// ===================== PEDIDOS ONLINE =====================
+async function aprobarPedido(id) {
+    const conf = await Swal.fire({
+        icon: 'question',
+        title: '¿Aprobar pedido?',
+        text: 'El pedido será marcado como APROBADO y la venta como COMPLETADA.',
+        background: '#0f172a',
+        color: '#e2e8f0',
+        showCancelButton: true,
+        confirmButtonColor: '#22c55e',
+        cancelButtonColor: '#475569',
+        confirmButtonText: 'Sí, aprobar',
+        cancelButtonText: 'Cancelar'
+    });
+    if (!conf.isConfirmed) return;
+    try {
+        const r = await fetch(`/ventas/${id}/aprobar`, { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+        const data = await r.json();
+        if (data.ok) {
+            await Swal.fire({ icon: 'success', title: 'Aprobado', text: 'El pedido fue aprobado correctamente.', background: '#0f172a', color: '#e2e8f0', confirmButtonColor: '#22c55e', timer: 1800, showConfirmButton: false });
+            location.reload();
+        } else {
+            Swal.fire({ icon: 'error', title: 'Error', text: data.msg || 'No se pudo aprobar.', background: '#0f172a', color: '#e2e8f0', confirmButtonColor: '#6366f1' });
+        }
+    } catch (e) {
+        Swal.fire({ icon: 'error', title: 'Error', text: 'Error de conexión.', background: '#0f172a', color: '#e2e8f0', confirmButtonColor: '#6366f1' });
+    }
+}
+
+async function rechazarPedido(id) {
+    const conf = await Swal.fire({
+        icon: 'warning',
+        title: '¿Rechazar pedido?',
+        text: 'El pedido será marcado como RECHAZADO y la venta como ANULADA.',
+        background: '#0f172a',
+        color: '#e2e8f0',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#475569',
+        confirmButtonText: 'Sí, rechazar',
+        cancelButtonText: 'Cancelar'
+    });
+    if (!conf.isConfirmed) return;
+    try {
+        const r = await fetch(`/ventas/${id}/rechazar`, { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+        const data = await r.json();
+        if (data.ok) {
+            await Swal.fire({ icon: 'success', title: 'Rechazado', text: 'El pedido fue rechazado.', background: '#0f172a', color: '#e2e8f0', confirmButtonColor: '#ef4444', timer: 1800, showConfirmButton: false });
+            location.reload();
+        } else {
+            Swal.fire({ icon: 'error', title: 'Error', text: data.msg || 'No se pudo rechazar.', background: '#0f172a', color: '#e2e8f0', confirmButtonColor: '#6366f1' });
+        }
+    } catch (e) {
+        Swal.fire({ icon: 'error', title: 'Error', text: 'Error de conexión.', background: '#0f172a', color: '#e2e8f0', confirmButtonColor: '#6366f1' });
+    }
+}
+
+function verVoucher(ruta) {
+    if (!ruta) return;
+    document.getElementById('voucherImg').src = ruta;
+    new bootstrap.Modal(document.getElementById('modalVoucher')).show();
+}
+
+// ===================== FILTRO =====================
+function filtrar(q) {
+    document.querySelectorAll('#tblVentas tbody tr').forEach(tr => {
+        tr.style.display = tr.textContent.toLowerCase().includes(q.toLowerCase()) ? '' : 'none';
+    });
+}
+
+// Cargar número al abrir
+window.addEventListener('DOMContentLoaded', cargarNumero);
+</script>
+
+<!-- ===================== MODAL VOUCHER ===================== -->
+<div class="modal fade" id="modalVoucher" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background:#0f172a;border:1px solid rgba(99,102,241,.3);border-radius:12px;">
+            <div class="modal-header" style="border-bottom:1px solid rgba(255,255,255,.08);">
+                <h5 class="modal-title" style="color:#e2e8f0;font-weight:700;">
+                    <i class="bi bi-image me-2" style="color:#6366f1;"></i>Comprobante de Pago
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center p-3">
+                <img id="voucherImg" src="" alt="Voucher" style="max-width:100%;max-height:70vh;border-radius:8px;border:1px solid rgba(255,255,255,.1);">
+            </div>
+            <div class="modal-footer" style="border-top:1px solid rgba(255,255,255,.08);">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:if="${error}">
+Swal.fire({
+    icon: 'error',
+    title: 'Error',
+    text: '[(${error})]',
+    background: '#0f172a',
+    color: 'white',
+    confirmButtonColor: '#6366f1',
+    confirmButtonText: 'Aceptar'
+});
+</script>
+
+<script th:if="${success}">
+Swal.fire({
+    icon: 'success',
+    title: 'Correcto',
+    text: '[(${success})]',
+    background: '#0f172a',
+    color: 'white',
+    confirmButtonColor: '#6366f1',
+    confirmButtonText: 'Aceptar'
+});
+</script>
+</body>
+</html>

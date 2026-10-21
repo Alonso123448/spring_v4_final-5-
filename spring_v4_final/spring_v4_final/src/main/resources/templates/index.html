@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Inventario</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- SweetAlert -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Chart -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- ICONOS -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
+
+    <style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+
+   background:
+
+radial-gradient(circle at top left,
+rgba(37,99,235,.45) 0%,
+transparent 28%
+),
+
+radial-gradient(circle at bottom right,
+rgba(124,58,237,.38) 0%,
+transparent 30%
+),
+
+radial-gradient(circle at center,
+rgba(59,130,246,.12) 0%,
+transparent 45%
+),
+
+#050816;
+
+    font-family:'Segoe UI',sans-serif;
+
+    color:white;
+
+    overflow-x:hidden;
+}
+
+/* =========================
+   MENU MODERNO
+========================= */
+
+.menu-item{
+    width:100%;
+}
+
+.menu-left{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.menu-badge{
+
+    min-width:30px;
+
+    height:30px;
+
+    border-radius:50px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    font-size:12px;
+
+    font-weight:bold;
+
+    color:white;
+
+    margin-left:auto;
+
+    box-shadow:
+    0 0 12px rgba(255,255,255,.12);
+}
+
+/* COLORES BADGES */
+
+.blue-badge{
+    background:#2563eb;
+}
+
+.green-badge{
+    background:#10b981;
+}
+
+.orange-badge{
+    background:#f59e0b;
+}
+
+.red-badge{
+    background:#ef4444;
+}
+
+.purple-badge{
+    background:#7c3aed;
+}
+
+.pink-badge{
+    background:#ec4899;
+}
+
+/* =========================
+   MAIN
+========================= */
+
+.main{
+
+    margin-left:260px;
+
+    padding:30px;
+}
+
+/* TITULO PRINCIPAL */
+.main h2{
+
+    font-size:58px;
+
+    font-weight:900;
+
+    color:white;
+
+    letter-spacing:1px;
+
+    text-shadow:
+    0 0 6px #ffffff,
+    0 0 14px #60a5fa,
+    0 0 30px #2563eb,
+    0 0 55px #7c3aed;
+
+    margin-bottom:28px;
+}
+
+.topbar{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin-bottom:35px;
+}
+
+.user-box{
+
+    background:rgba(255,255,255,.08);
+
+    backdrop-filter:blur(15px);
+
+    border:1px solid rgba(255,255,255,.08);
+
+    padding:12px 20px;
+
+    border-radius:18px;
+
+    color:white;
+
+    font-weight:600;
+
+    box-shadow:
+    0 10px 25px rgba(0,0,0,.2),
+    0 0 20px rgba(59,130,246,.08);
+}
+
+/* =========================
+   TARJETAS SUPER MODERNAS
+========================= */
+
+.stats-grid{
+
+    display:grid;
+
+    grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+
+    gap:22px;
+
+    margin-bottom:35px;
+}
+
+.stat-card{
+
+    position:relative;
+
+    overflow:hidden;
+
+    background:rgba(255,255,255,.08);
+
+    backdrop-filter:blur(18px);
+
+    border:1px solid rgba(255,255,255,.08);
+
+    border-radius:30px;
+
+    padding:24px;
+
+    display:flex;
+
+    align-items:center;
+
+    gap:18px;
+
+    transition:0.35s;
+
+    box-shadow:
+    0 10px 35px rgba(0,0,0,.25),
+    0 0 20px rgba(59,130,246,.08);
+}
+
+.stat-card::before{
+
+    content:"";
+
+    position:absolute;
+
+    width:180px;
+    height:180px;
+
+    border-radius:50%;
+
+    background:rgba(255,255,255,.05);
+
+    top:-70px;
+    right:-70px;
+}
+
+.stat-card::after{
+
+    content:"";
+
+    position:absolute;
+
+    inset:0;
+
+    border-radius:inherit;
+
+    background:linear-gradient(
+    135deg,
+    rgba(59,130,246,.08),
+    rgba(124,58,237,.06)
+    );
+
+    opacity:0;
+
+    transition:.4s;
+}
+
+.stat-card:hover::after{
+
+    opacity:1;
+}
+
+.stat-card:hover{
+
+    transform:
+    translateY(-8px)
+    scale(1.02);
+
+    box-shadow:
+    0 20px 45px rgba(59,130,246,.25),
+    0 0 30px rgba(59,130,246,.18);
+}
+
+.icon-box{
+
+    width:72px;
+    height:72px;
+
+    border-radius:22px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    color:white;
+
+    font-size:26px;
+
+    flex-shrink:0;
+
+    box-shadow:
+    0 10px 25px rgba(0,0,0,.25);
+}
+
+/* GRADIENTES ICONOS */
+
+.blue{
+    background:linear-gradient(135deg,#2563eb,#60a5fa);
+}
+
+.green{
+    background:linear-gradient(135deg,#10b981,#34d399);
+}
+
+.orange{
+    background:linear-gradient(135deg,#f59e0b,#fbbf24);
+}
+
+.red{
+    background:linear-gradient(135deg,#ef4444,#f87171);
+}
+
+.purple{
+    background:linear-gradient(135deg,#7c3aed,#a855f7);
+}
+
+.pink{
+    background:linear-gradient(135deg,#ec4899,#f472b6);
+}
+
+.card-info h3{
+
+    margin:0;
+
+    font-size:38px;
+
+    font-weight:900;
+
+    color:white;
+
+    text-shadow:
+    0 0 10px rgba(255,255,255,.25);
+}
+
+.card-info p{
+
+    margin:0;
+
+    color:#e2e8f0;
+
+    font-size:15px;
+
+    line-height:1.4;
+
+    text-decoration:none !important;
+}
+
+.card-info a{
+
+    text-decoration:none !important;
+
+    color:#e2e8f0 !important;
+}
+
+/* =========================
+   CHARTS TECNOLOGICOS
+========================= */
+
+.charts-modern{
+
+    display:grid;
+
+    grid-template-columns:1fr 1fr;
+
+    gap:25px;
+
+    margin-top:25px;
+}
+
+.modern-chart-card{
+
+    position:relative;
+
+    overflow:hidden;
+
+    background:rgba(255,255,255,.08);
+
+    backdrop-filter:blur(20px);
+
+    border-radius:30px;
+
+    padding:28px;
+
+    border:1px solid rgba(255,255,255,.08);
+
+    box-shadow:
+    0 15px 40px rgba(0,0,0,.25),
+    0 0 25px rgba(59,130,246,.06);
+
+    transition:0.35s;
+}
+
+.modern-chart-card:hover{
+
+    transform:translateY(-6px);
+
+    box-shadow:
+    0 20px 45px rgba(59,130,246,.2),
+    0 0 35px rgba(59,130,246,.12);
+}
+
+.modern-chart-card::before{
+
+    content:'';
+
+    position:absolute;
+
+    width:220px;
+    height:220px;
+
+    border-radius:50%;
+
+    background:rgba(255,255,255,.05);
+
+    top:-100px;
+    right:-100px;
+}
+
+.modern-chart-card::after{
+
+    content:'';
+
+    position:absolute;
+
+    width:140px;
+    height:140px;
+
+    border-radius:50%;
+
+    background:rgba(124,58,237,.08);
+
+    bottom:-60px;
+    left:-60px;
+}
+
+/* HEADER CHART */
+
+.chart-header{
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+
+    margin-bottom:20px;
+
+    position:relative;
+
+    z-index:2;
+}
+
+.chart-header h3{
+
+    margin:0;
+
+    font-size:28px;
+
+    font-weight:800;
+
+    color:white;
+
+    text-shadow:
+    0 0 10px rgba(255,255,255,.12);
+}
+
+.chart-header p{
+
+    margin-top:5px;
+
+    color:#e2e8f0;
+
+    font-size:14px;
+}
+
+/* ICONOS CHART */
+
+.chart-icon{
+
+    width:60px;
+    height:60px;
+
+    border-radius:20px;
+
+    display:flex;
+
+    align-items:center;
+    justify-content:center;
+
+    color:white;
+
+    font-size:24px;
+
+    box-shadow:
+    0 10px 25px rgba(0,0,0,.25);
+}
+
+.chart-blue{
+    background:linear-gradient(135deg,#2563eb,#60a5fa);
+}
+
+.chart-red{
+    background:linear-gradient(135deg,#ef4444,#f87171);
+}
+
+/* CHARTS */
+
+.chart-container{
+
+    position:relative;
+
+    height:340px;
+}
+
+canvas{
+
+    width:100% !important;
+
+    height:320px !important;
+
+    position:relative;
+
+    z-index:2;
+}
+
+/* TEXTO CENTRO DONA */
+
+.chart-center{
+
+    position:absolute;
+
+    top:50%;
+    left:50%;
+
+    transform:translate(-50%,-50%);
+
+    text-align:center;
+
+    pointer-events:none;
+}
+
+.chart-center h2{
+
+    margin:0;
+
+    font-size:40px;
+
+    font-weight:900;
+
+    color:white;
+
+    text-shadow:
+    0 0 12px #60a5fa,
+    0 0 22px #3b82f6;
+}
+
+.chart-center span{
+
+    color:#e2e8f0;
+
+    font-size:14px;
+}
+
+/* =========================
+   WELCOME
+========================= */
+
+.welcome{
+
+    margin-top:35px;
+
+    background:linear-gradient(
+    135deg,
+    #2563eb,
+    #4f46e5,
+    #7c3aed
+    );
+
+    color:white;
+
+    border-radius:28px;
+
+    padding:35px;
+
+    position:relative;
+
+    overflow:hidden;
+
+    box-shadow:
+    0 15px 45px rgba(59,130,246,.28),
+    0 0 35px rgba(124,58,237,.18);
+}
+
+.welcome::before{
+
+    content:"";
+
+    position:absolute;
+
+    width:260px;
+    height:260px;
+
+    border-radius:50%;
+
+    background:rgba(255,255,255,.08);
+
+    right:-100px;
+    bottom:-100px;
+}
+
+.welcome h2{
+
+    font-size:36px;
+
+    margin-bottom:10px;
+
+    font-weight:800;
+
+    position:relative;
+
+    z-index:2;
+
+    text-shadow:
+    0 0 12px rgba(255,255,255,.2);
+}
+
+.welcome p{
+
+    opacity:.95;
+
+    font-size:16px;
+
+    position:relative;
+
+    z-index:2;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media(max-width:1100px){
+
+    .charts-modern{
+        grid-template-columns:1fr;
+    }
+}
+
+@media(max-width:900px){
+
+    .main{
+        margin-left:210px;
+    }
+
+    .main h2{
+        font-size:40px;
+    }
+
+    .stats-grid{
+        grid-template-columns:1fr;
+    }
+}
+
+@media(max-width:768px){
+
+    .main h2{
+        font-size:28px !important;
+    }
+
+    .topbar{
+        flex-direction:column;
+        align-items:flex-start;
+        gap:12px;
+    }
+
+    .user-box{
+        width:100%;
+        text-align:center;
+    }
+
+    .stats-grid{
+        grid-template-columns:1fr !important;
+        gap:14px;
+    }
+
+    .stat-card{
+        padding:18px;
+    }
+
+    .icon-box{
+        width:56px;
+        height:56px;
+        font-size:20px;
+    }
+}
+
+@media(max-width:480px){
+
+    .main h2{
+        font-size:22px !important;
+    }
+}
+
+</style>
+
+</head>
+
+<body>
+
+<!-- SIDEBAR -->
+<th:block th:replace="~{fragments/sidebar :: sidebar}"></th:block>
+
+<!-- MAIN -->
+<div class="main">
+
+    <!-- TOP -->
+    <div class="topbar">
+
+        <h1>Dashboard</h1>
+
+        <div class="user-box">
+            Sistema de Inventario
+        </div>
+
+    </div>
+
+    <!-- ══ STATS DE VENTAS ══ -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;margin-bottom:22px;">
+
+        <!-- Ventas de hoy -->
+        <div style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.08);
+                    border-radius:22px;padding:22px 24px;display:flex;align-items:center;
+                    justify-content:space-between;gap:16px;">
+            <div>
+                <div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Ventas de hoy</div>
+                <div style="font-size:26px;font-weight:900;color:#e2e8f0;">
+                    S/ <span th:text="${#numbers.formatDecimal(ventasHoy,1,2)}">0.00</span>
+                </div>
+                <div style="font-size:12px;color:#64748b;margin-top:4px;">
+                    <span th:text="${countVentasHoy}">0</span> venta(s) hoy
+                </div>
+            </div>
+            <div style="width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#2563eb,#60a5fa);
+                        display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">
+                <i class="fa-solid fa-circle-dollar-to-slot"></i>
+            </div>
+        </div>
+
+        <!-- Ventas del mes -->
+        <div style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.08);
+                    border-radius:22px;padding:22px 24px;display:flex;align-items:center;
+                    justify-content:space-between;gap:16px;">
+            <div>
+                <div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Ventas del mes</div>
+                <div style="font-size:26px;font-weight:900;color:#e2e8f0;">
+                    S/ <span th:text="${#numbers.formatDecimal(ventasMes,1,2)}">0.00</span>
+                </div>
+                <div style="font-size:12px;color:#64748b;margin-top:4px;">
+                    Ticket prom: S/ <span th:text="${#numbers.formatDecimal(ticketProm,1,2)}">0.00</span>
+                </div>
+            </div>
+            <div style="width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#10b981,#34d399);
+                        display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">
+                <i class="fa-solid fa-calendar-check"></i>
+            </div>
+        </div>
+
+        <!-- Productos vendidos hoy -->
+        <div style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.08);
+                    border-radius:22px;padding:22px 24px;display:flex;align-items:center;
+                    justify-content:space-between;gap:16px;">
+            <div>
+                <div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Productos vendidos hoy</div>
+                <div style="font-size:26px;font-weight:900;color:#e2e8f0;" th:text="${productosVendHoy}">0</div>
+                <div style="font-size:12px;color:#64748b;margin-top:4px;">
+                    <span th:text="${countVentasHoy}">0</span> venta(s)
+                </div>
+            </div>
+            <div style="width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#7c3aed,#a855f7);
+                        display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">
+                <i class="fa-solid fa-boxes-stacked"></i>
+            </div>
+        </div>
+
+        <!-- Clientes registrados -->
+        <div style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.08);
+                    border-radius:22px;padding:22px 24px;display:flex;align-items:center;
+                    justify-content:space-between;gap:16px;">
+            <div>
+                <div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Clientes registrados</div>
+                <div style="font-size:26px;font-weight:900;color:#e2e8f0;" th:text="${totalClientes}">0</div>
+                <div style="font-size:12px;color:#64748b;margin-top:4px;">en el sistema</div>
+            </div>
+            <div style="width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#f59e0b,#fbbf24);
+                        display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">
+                <i class="fa-solid fa-users"></i>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ══ ALERTAS DE INVENTARIO ══ -->
+    <div style="margin-bottom:28px;">
+        <div style="font-size:14px;font-weight:700;color:#e2e8f0;margin-bottom:14px;display:flex;align-items:center;gap:8px;">
+            <i class="fa-solid fa-triangle-exclamation" style="color:#f59e0b;"></i> Alertas de inventario
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;">
+
+            <!-- Vencidos -->
+            <a th:href="@{/productos}" style="text-decoration:none;background:rgba(239,68,68,.08);
+               border:1px solid rgba(239,68,68,.3);border-radius:16px;padding:18px 20px;
+               display:flex;align-items:center;gap:14px;transition:.2s;"
+               onmouseover="this.style.background='rgba(239,68,68,.15)'"
+               onmouseout="this.style.background='rgba(239,68,68,.08)'">
+                <div style="width:42px;height:42px;border-radius:12px;background:rgba(239,68,68,.2);
+                            display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <i class="fa-solid fa-calendar-xmark" style="color:#f87171;font-size:18px;"></i>
+                </div>
+                <div>
+                    <div style="font-size:26px;font-weight:900;color:#f87171;" th:text="${alertaVencidos}">0</div>
+                    <div style="font-size:12px;color:#94a3b8;">Vencidos</div>
+                </div>
+            </a>
+
+            <!-- Por vencer 7d -->
+            <a th:href="@{/productos}" style="text-decoration:none;background:rgba(245,158,11,.08);
+               border:1px solid rgba(245,158,11,.3);border-radius:16px;padding:18px 20px;
+               display:flex;align-items:center;gap:14px;transition:.2s;"
+               onmouseover="this.style.background='rgba(245,158,11,.15)'"
+               onmouseout="this.style.background='rgba(245,158,11,.08)'">
+                <div style="width:42px;height:42px;border-radius:12px;background:rgba(245,158,11,.2);
+                            display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <i class="fa-solid fa-clock" style="color:#fbbf24;font-size:18px;"></i>
+                </div>
+                <div>
+                    <div style="font-size:26px;font-weight:900;color:#fbbf24;" th:text="${alertaPorVencer}">0</div>
+                    <div style="font-size:12px;color:#94a3b8;">Por vencer (7d)</div>
+                </div>
+            </a>
+
+            <!-- Agotados -->
+            <a th:href="@{/productos}" style="text-decoration:none;background:rgba(239,68,68,.08);
+               border:1px solid rgba(239,68,68,.3);border-radius:16px;padding:18px 20px;
+               display:flex;align-items:center;gap:14px;transition:.2s;"
+               onmouseover="this.style.background='rgba(239,68,68,.15)'"
+               onmouseout="this.style.background='rgba(239,68,68,.08)'">
+                <div style="width:42px;height:42px;border-radius:12px;background:rgba(239,68,68,.2);
+                            display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <i class="fa-solid fa-circle-exclamation" style="color:#f87171;font-size:18px;"></i>
+                </div>
+                <div>
+                    <div style="font-size:26px;font-weight:900;color:#f87171;" th:text="${alertaAgotados}">0</div>
+                    <div style="font-size:12px;color:#94a3b8;">Agotados</div>
+                </div>
+            </a>
+
+            <!-- Stock bajo -->
+            <a th:href="@{/productos}" style="text-decoration:none;background:rgba(245,158,11,.08);
+               border:1px solid rgba(245,158,11,.3);border-radius:16px;padding:18px 20px;
+               display:flex;align-items:center;gap:14px;transition:.2s;"
+               onmouseover="this.style.background='rgba(245,158,11,.15)'"
+               onmouseout="this.style.background='rgba(245,158,11,.08)'">
+                <div style="width:42px;height:42px;border-radius:12px;background:rgba(245,158,11,.2);
+                            display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <i class="fa-solid fa-triangle-exclamation" style="color:#fbbf24;font-size:18px;"></i>
+                </div>
+                <div>
+                    <div style="font-size:26px;font-weight:900;color:#fbbf24;" th:text="${alertaStockBajo}">0</div>
+                    <div style="font-size:12px;color:#94a3b8;">Stock bajo</div>
+                </div>
+            </a>
+
+        </div>
+    </div>
+
+    <!-- CARDS -->
+    <div class="stats-grid">
+
+        <a th:href="@{/usuarios}" class="stat-card">
+
+            <div class="icon-box blue">
+                <i class="fa-solid fa-users"></i>
+            </div>
+
+            <div class="card-info">
+                <h3 th:text="${totalUsuarios}">0</h3>
+                <p>Usuarios Activos</p>
+            </div>
+
+        </a>
+
+        <a th:href="@{/productos}" class="stat-card">
+
+            <div class="icon-box green">
+                <i class="fa-solid fa-box-open"></i>
+            </div>
+
+            <div class="card-info">
+                <h3 th:text="${totalProductos}">0</h3>
+                <p>Productos Activos</p>
+            </div>
+
+        </a>
+
+        <a th:href="@{/categorias}" class="stat-card">
+
+            <div class="icon-box orange">
+                <i class="fa-solid fa-tags"></i>
+            </div>
+
+            <div class="card-info">
+                <h3 th:text="${totalCategorias}">0</h3>
+                <p>Categorías Activas</p>
+            </div>
+
+        </a>
+
+        <a th:href="@{/roles}" class="stat-card">
+
+            <div class="icon-box red">
+                <i class="fa-solid fa-shield"></i>
+            </div>
+
+            <div class="card-info">
+                <h3 th:text="${totalRoles}">0</h3>
+                <p>Perfiles Activos</p>
+            </div>
+
+        </a>
+
+        <a th:href="@{/proveedores}" class="stat-card">
+
+            <div class="icon-box purple">
+                <i class="fa-solid fa-truck"></i>
+            </div>
+
+            <div class="card-info">
+                <h3 th:text="${totalProveedores}">0</h3>
+                <p>Proveedores</p>
+            </div>
+
+        </a>
+
+        <a th:href="@{/movimientos}" class="stat-card">
+
+            <div class="icon-box pink">
+                <i class="fa-solid fa-arrow-right-arrow-left"></i>
+            </div>
+
+            <div class="card-info">
+                <h3 th:text="${totalMovimientos}">0</h3>
+                <p>Movimientos</p>
+            </div>
+
+        </a>
+
+    </div>
+
+    
+<!-- CHARTS MODERNOS -->
+<div class="charts-modern">
+
+    <!-- DONA -->
+    <div class="modern-chart-card">
+
+        <div class="chart-header">
+
+            <div>
+                <h3>Productos por Categoría</h3>
+                <p>Distribución inteligente del inventario</p>
+            </div>
+
+            <div class="chart-icon chart-blue">
+                <i class="fa-solid fa-chart-pie"></i>
+            </div>
+
+        </div>
+
+        <div class="chart-container">
+
+            <canvas id="productosPorCategoria"></canvas>
+
+            <div class="chart-center">
+                <h2 th:text="${totalProductos}">0</h2>
+                <span>Productos</span>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- BARRAS -->
+    <div class="modern-chart-card">
+
+        <div class="chart-header">
+
+            <div>
+                <h3>Movimientos del Sistema</h3>
+                <p>Entradas y salidas registradas</p>
+            </div>
+
+            <div class="chart-icon chart-red">
+                <i class="fa-solid fa-chart-column"></i>
+            </div>
+
+        </div>
+
+        <div class="chart-container">
+
+            <canvas id="movimientosTipo"></canvas>
+
+        </div>
+
+    </div>
+
+</div>
+
+    <!-- WELCOME -->
+    <div class="welcome">
+
+        <h2>
+            Bienvenido al Sistema
+        </h2>
+
+        <p>
+            Gestiona productos, usuarios, categorías,
+            proveedores y movimientos desde un solo lugar.
+        </p>
+
+    </div>
+
+</div>
+
+<!-- CHARTS -->
+<script>
+
+Chart.defaults.color = '#6b7280';
+
+Chart.defaults.font.family = 'Segoe UI';
+
+/* =========================
+   DONA MODERNA
+========================= */
+
+const ctx1 = document.getElementById('productosPorCategoria');
+
+new Chart(ctx1, {
+
+    type:'doughnut',
+
+    data:{
+
+        labels:[
+            'Monitores',
+            'Teclados',
+            'Mouse',
+            'Audífonos'
+        ],
+
+        datasets:[{
+
+            data:[35,25,22,18],
+
+            backgroundColor:[
+                '#2563eb',
+                '#10b981',
+                '#f59e0b',
+                '#ef4444'
+            ],
+
+            borderWidth:0,
+
+            hoverOffset:15,
+
+            spacing:4
+
+        }]
+
+    },
+
+    options:{
+
+        responsive:true,
+
+        maintainAspectRatio:false,
+
+        cutout:'72%',
+
+        plugins:{
+
+            legend:{
+
+                position:'bottom',
+
+                labels:{
+
+                    usePointStyle:true,
+
+                    pointStyle:'circle',
+
+                    padding:22,
+
+                    font:{
+                        size:13,
+                        weight:'bold'
+                    }
+
+                }
+
+            }
+
+        },
+
+        animation:{
+            animateRotate:true,
+            duration:1800
+        }
+
+    }
+
+});
+
+/* =========================
+   BARRAS MODERNAS
+========================= */
+
+const ctx2 = document.getElementById('movimientosTipo');
+
+new Chart(ctx2, {
+
+    type:'bar',
+
+    data:{
+
+        labels:[
+            'ENTRADAS',
+            'SALIDAS'
+        ],
+
+        datasets:[{
+
+            data:[120,45],
+
+            backgroundColor:[
+                '#3b82f6',
+                '#ef4444'
+            ],
+
+            borderRadius:18,
+
+            borderSkipped:false,
+
+            barThickness:90
+
+        }]
+
+    },
+
+    options:{
+
+        responsive:true,
+
+        maintainAspectRatio:false,
+
+        plugins:{
+
+            legend:{
+                display:false
+            }
+
+        },
+
+        scales:{
+
+            x:{
+
+                grid:{
+                    display:false
+                },
+
+                ticks:{
+                    font:{
+                        weight:'bold'
+                    }
+                }
+
+            },
+
+            y:{
+
+                beginAtZero:true,
+
+                grid:{
+                    color:'rgba(0,0,0,0.06)'
+                }
+
+            }
+
+        },
+
+        animation:{
+            duration:1800
+        }
+
+    }
+
+});
+
+</script>
+
+<!-- SWEET ALERT LOGOUT -->
+<script>
+
+function confirmarLogoutDashboard(){
+
+    Swal.fire({
+
+        title:'Cerrar sesión',
+        text:'¿Deseas cerrar sesión?',
+        icon:'question',
+        showCancelButton:true,
+        confirmButtonText:'Sí, cerrar sesión',
+        cancelButtonText:'Cancelar'
+
+    }).then((result)=>{
+
+        if(result.isConfirmed){
+
+            document.getElementById('logoutFormDashboard').submit();
+
+        }
+
+    });
+
+}
+
+</script>
+
+<!-- Bootstrap -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- JS GLOBAL -->
+<script src="/js/main.js"></script>
+
+</body>
+</html>

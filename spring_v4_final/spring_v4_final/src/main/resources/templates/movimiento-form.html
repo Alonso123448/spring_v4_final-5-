@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Movimiento Inventario</title>
+</head>
+
+<body>
+
+<h1>Movimiento Inventario</h1>
+
+<form th:action="@{/movimientos/guardar}"
+      th:object="${movimiento}"
+      method="post">
+
+    <!-- PRODUCTO -->
+    <label>Producto:</label>
+
+    <select th:field="*{producto.id}" required>
+
+        <option value="">
+            Seleccione
+        </option>
+
+        <option th:each="p : ${productos}"
+                th:value="${p.id}"
+                th:text="${p.nombre}">
+        </option>
+
+    </select>
+
+    <br><br>
+
+    <!-- TIPO -->
+    <label>Tipo:</label>
+
+    <select th:field="*{tipo}" required>
+
+        <option value="">
+            Seleccione
+        </option>
+
+        <option value="ENTRADA">
+            ENTRADA
+        </option>
+
+        <option value="SALIDA">
+            SALIDA
+        </option>
+
+    </select>
+
+    <br><br>
+
+    <!-- CANTIDAD -->
+    <label>Cantidad:</label>
+
+    <input type="number"
+           th:field="*{cantidad}"
+           min="1"
+           required>
+
+    <br><br>
+
+    <button type="submit">
+    Guardar Movimiento
+</button>
+
+<br><br>
+
+<a th:href="@{/productos}">
+    ← Volver a Productos
+</a>
+
+</form>
+
+</body>
+</html>

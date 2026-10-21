@@ -1,0 +1,45 @@
+# ===== Maven / Java =====
+target/
+*.class
+*.jar
+*.war
+.mvn/wrapper/maven-wrapper.jar
+
+# ===== IDE =====
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
+.factorypath
+
+# ===== OS =====
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ===== Logs =====
+*.log
+
+# ===== Node (modulo-productos) =====
+node-modulo-productos/node_modules/
+node_modules/
+npm-debug.log*
+
+# ===== CONFIGURACIÓN CON CREDENCIALES REALES (NO SUBIR) =====
+# Contiene password de BD, password de Gmail y token de API.
+# Usa application.properties.example como plantilla.
+src/main/resources/application.properties
+
+# ===== Comprobantes de pago reales de clientes (datos personales/financieros) =====
+src/main/resources/static/imagenes/vouchers/*
+!src/main/resources/static/imagenes/vouchers/.gitkeep
+
+# ===== Carpetas de node_modules de módulos extra =====
+LixCenter_Productos_node/node_modules/
+
+# ===== Herramientas locales (no son parte del proyecto) =====
+.claude/
+.VSCodeCounter/
+

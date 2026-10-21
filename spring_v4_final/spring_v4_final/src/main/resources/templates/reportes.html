@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reportes</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+    <style>
+        *{ margin:0; padding:0; box-sizing:border-box; }
+        body{
+            background:
+                radial-gradient(circle at top left,#1e3a8a 0%,transparent 25%),
+                radial-gradient(circle at bottom right,#7c3aed 0%,transparent 25%),
+                #0f172a;
+            font-family:'Segoe UI',sans-serif; color:#e2e8f0; min-height:100vh;
+        }
+        .main{ margin-left:270px; padding:30px; }
+
+        .topbar{ display:flex; justify-content:space-between; align-items:center; margin-bottom:26px; }
+        .topbar h2{ font-size:30px; font-weight:800; color:white;
+            text-shadow:0 0 10px rgba(59,130,246,.7),0 0 20px rgba(124,58,237,.5); }
+        .topbar .sub{ color:#94a3b8; font-size:13px; margin-top:4px; }
+
+        /* KPI CARDS */
+        .kpi-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:14px; margin-bottom:22px; }
+        .kpi{
+            background:rgba(255,255,255,.06); backdrop-filter:blur(20px);
+            border:1px solid rgba(255,255,255,.08); border-radius:20px;
+            padding:18px; display:flex; align-items:center; gap:14px;
+            transition:.3s;
+        }
+        .kpi:hover{ transform:translateY(-3px); box-shadow:0 12px 30px rgba(0,0,0,.3); }
+        .kpi .chip{
+            width:46px; height:46px; border-radius:14px; flex-shrink:0;
+            display:flex; align-items:center; justify-content:center; font-size:19px; color:white;
+        }
+        .kpi .val{ font-size:20px; font-weight:800; color:white; line-height:1.1; }
+        .kpi .lbl{ font-size:11.5px; color:#94a3b8; margin-top:3px; }
+
+        .c-indigo { background:linear-gradient(135deg,#6366f1,#4f46e5); box-shadow:0 6px 16px rgba(99,102,241,.35); }
+        .c-blue   { background:linear-gradient(135deg,#3b82f6,#2563eb); box-shadow:0 6px 16px rgba(59,130,246,.35); }
+        .c-green  { background:linear-gradient(135deg,#34d399,#059669); box-shadow:0 6px 16px rgba(52,211,153,.35); }
+        .c-cyan   { background:linear-gradient(135deg,#22d3ee,#0891b2); box-shadow:0 6px 16px rgba(34,211,238,.35); }
+        .c-amber  { background:linear-gradient(135deg,#f59e0b,#d97706); box-shadow:0 6px 16px rgba(245,158,11,.35); }
+        .c-red    { background:linear-gradient(135deg,#ef4444,#dc2626); box-shadow:0 6px 16px rgba(239,68,68,.35); }
+
+        /* CARDS GENERALES */
+        .panel{
+            background:rgba(255,255,255,.06); backdrop-filter:blur(20px);
+            border:1px solid rgba(255,255,255,.08); border-radius:22px;
+            padding:22px; box-shadow:0 15px 40px rgba(0,0,0,.25);
+        }
+        .panel h3{ font-size:15px; font-weight:800; color:white; margin-bottom:16px;
+            display:flex; align-items:center; gap:9px; }
+        .panel h3 i{ color:#8b5cf6; }
+
+        .row-2{ display:grid; grid-template-columns:1fr 2fr; gap:16px; margin-bottom:16px; }
+        .row-2b{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px; }
+        .row-3{ display:grid; grid-template-columns:2fr 1fr; gap:16px; margin-bottom:16px; }
+
+        /* ORIGEN CARDS */
+        .origen-card{
+            border-radius:16px; padding:18px; text-align:center;
+            border:1px solid rgba(255,255,255,.1); margin-bottom:12px;
+        }
+        .origen-card .tag{ font-size:11px; letter-spacing:1.5px; font-weight:700; color:#94a3b8; text-transform:uppercase; }
+        .origen-card .monto{ font-size:24px; font-weight:800; margin:6px 0 2px; }
+        .origen-card .np{ font-size:12px; color:#94a3b8; }
+        .og-cat{ background:linear-gradient(135deg,rgba(34,211,238,.12),rgba(59,130,246,.12)); }
+        .og-cat .monto{ color:#22d3ee; }
+        .og-adm{ background:linear-gradient(135deg,rgba(139,92,246,.12),rgba(236,72,153,.12)); }
+        .og-adm .monto{ color:#c084fc; }
+
+        /* TABLA STOCK */
+        table{ width:100%; border-collapse:separate; border-spacing:0 6px; }
+        thead th{ color:#93c5fd; font-size:12px; font-weight:700; text-transform:uppercase;
+            letter-spacing:1px; padding:10px 14px; text-align:left; }
+        tbody tr{ background:rgba(255,255,255,.04); transition:.3s; }
+        tbody tr:hover{ background:rgba(59,130,246,.1); }
+        tbody td{ padding:11px 14px; font-size:13.5px; }
+        tbody td:first-child{ border-radius:12px 0 0 12px; }
+        tbody td:last-child{ border-radius:0 12px 12px 0; }
+        .badge{ padding:4px 12px; border-radius:20px; font-size:11.5px; font-weight:700; }
+        .b-rojo{ background:rgba(239,68,68,.18); color:#fca5a5; border:1px solid rgba(239,68,68,.3); }
+        .b-amarillo{ background:rgba(245,158,11,.18); color:#fcd34d; border:1px solid rgba(245,158,11,.3); }
+        .vacio{ text-align:center; color:#64748b; padding:26px; font-size:13.5px; }
+
+        .chart-box{ position:relative; width:100%; }
+
+        .btn-pdf{
+            background:linear-gradient(135deg,#ef4444,#dc2626);
+            border:none; color:white; font-weight:700; font-size:14px;
+            padding:11px 20px; border-radius:14px; cursor:pointer;
+            display:flex; align-items:center; gap:9px; transition:.3s;
+            box-shadow:0 6px 16px rgba(239,68,68,.3);
+        }
+        .btn-pdf:hover{ transform:translateY(-2px); box-shadow:0 10px 24px rgba(239,68,68,.4); }
+
+        @media(max-width:1100px){
+            .row-2,.row-2b,.row-3{ grid-template-columns:1fr; }
+        }
+        @media(max-width:768px){
+            .kpi-grid{ grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); }
+        }
+
+        /* ═══════════ ESTILOS DE IMPRESIÓN (PDF) ═══════════ */
+        @media print {
+            @page{ size:A4 portrait; margin:12mm; }
+            body{ background:white !important; color:#1e293b !important; }
+            .sidebar, .sidebar-toggle, .mobile-menu-btn, .sidebar-overlay, .btn-pdf{
+                display:none !important;
+            }
+            .main{ margin-left:0 !important; padding:0 !important; }
+            .topbar h2{ color:#1e293b !important; text-shadow:none !important; }
+            .topbar .sub{ color:#64748b !important; }
+            .panel, .kpi{
+                background:white !important; backdrop-filter:none !important;
+                border:1px solid #e2e8f0 !important; box-shadow:none !important;
+                break-inside:avoid;
+            }
+            .panel h3{ color:#1e293b !important; }
+            .kpi .val{ color:#1e293b !important; }
+            .kpi .lbl{ color:#64748b !important; }
+            .kpi .chip{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+            .kpi:hover, .panel:hover{ transform:none !important; }
+            thead th{ color:#475569 !important; }
+            tbody tr{ background:#f8fafc !important; }
+            tbody td{ color:#1e293b !important; }
+            .badge, .origen-card, .chip{
+                -webkit-print-color-adjust:exact; print-color-adjust:exact;
+            }
+            .origen-card .monto{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+            .vacio{ color:#64748b !important; }
+            .row-2, .row-2b, .row-3{ break-inside:avoid; }
+            .chart-box{ break-inside:avoid; }
+        }
+    </style>
+</head>
+<body>
+
+<div th:replace="fragments/sidebar :: sidebar"></div>
+
+<div class="main">
+
+    <div class="topbar">
+        <div>
+            <h2><i class="fa-solid fa-chart-pie"></i> Reportes</h2>
+            <div class="sub">Resumen general de ventas, inventario y pagos</div>
+        </div>
+        <button class="btn-pdf" onclick="imprimirPDF()">
+            <i class="fa-solid fa-file-pdf"></i> Imprimir PDF
+        </button>
+    </div>
+
+    <!-- ═══ KPIs ═══ -->
+    <div class="kpi-grid">
+        <div class="kpi">
+            <div class="chip c-indigo"><i class="fa-solid fa-sack-dollar"></i></div>
+            <div>
+                <div class="val" th:text="'S/ ' + ${#numbers.formatDecimal(ventasHoy,1,'COMMA',2,'POINT')}">S/ 0.00</div>
+                <div class="lbl">Ventas de hoy</div>
+            </div>
+        </div>
+        <div class="kpi">
+            <div class="chip c-blue"><i class="fa-solid fa-calendar-day"></i></div>
+            <div>
+                <div class="val" th:text="'S/ ' + ${#numbers.formatDecimal(ventasMes,1,'COMMA',2,'POINT')}">S/ 0.00</div>
+                <div class="lbl">Ventas del mes</div>
+            </div>
+        </div>
+        <div class="kpi">
+            <div class="chip c-green"><i class="fa-solid fa-arrow-trend-up"></i></div>
+            <div>
+                <div class="val" th:text="'S/ ' + ${#numbers.formatDecimal(ventasAnio,1,'COMMA',2,'POINT')}">S/ 0.00</div>
+                <div class="lbl">Ventas del año</div>
+            </div>
+        </div>
+        <div class="kpi">
+            <div class="chip c-cyan"><i class="fa-solid fa-receipt"></i></div>
+            <div>
+                <div class="val" th:text="${transaccionesMes}">0</div>
+                <div class="lbl">Transacciones del mes</div>
+            </div>
+        </div>
+        <div class="kpi">
+            <div class="chip c-amber"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+            <div>
+                <div class="val" th:text="'S/ ' + ${#numbers.formatDecimal(creditosPorCobrar,1,'COMMA',2,'POINT')}">S/ 0.00</div>
+                <div class="lbl">Créditos por cobrar</div>
+            </div>
+        </div>
+        <div class="kpi">
+            <div class="chip c-red"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <div>
+                <div class="val" th:text="${stockBajoCount}">0</div>
+                <div class="lbl">Productos stock bajo</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ FILA 1: dona métodos de pago + tendencia (línea) ═══ -->
+    <div class="row-2">
+        <div class="panel">
+            <h3><i class="fa-solid fa-credit-card"></i> Métodos de Pago</h3>
+            <div class="chart-box" style="height:280px;">
+                <canvas id="chartPagos"></canvas>
+            </div>
+        </div>
+        <div class="panel">
+            <h3><i class="fa-solid fa-chart-line"></i> Tendencia de ventas (últimos 12 meses)</h3>
+            <div class="chart-box" style="height:280px;">
+                <canvas id="chartTendencia"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ FILA 2: categorías (barras horizontales) + top productos (barras verticales) ═══ -->
+    <div class="row-2b">
+        <div class="panel">
+            <h3><i class="fa-solid fa-tags"></i> Ingresos por categoría</h3>
+            <div class="chart-box" style="height:300px;">
+                <canvas id="chartCategorias"></canvas>
+            </div>
+        </div>
+        <div class="panel">
+            <h3><i class="fa-solid fa-trophy"></i> Productos más vendidos</h3>
+            <div class="chart-box" style="height:300px;">
+                <canvas id="chartTop"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ FILA 3: stock bajo (tabla) + origen ═══ -->
+    <div class="row-3">
+        <div class="panel">
+            <h3><i class="fa-solid fa-triangle-exclamation" style="color:#f87171;"></i> Productos con stock bajo</h3>
+            <table th:if="${!#lists.isEmpty(stockBajo)}">
+                <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Categoría</th>
+                    <th>Stock</th>
+                    <th>Mínimo</th>
+                    <th>Estado</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="p : ${stockBajo}">
+                    <td th:text="${p.nombre}"></td>
+                    <td th:text="${p.categoria}"></td>
+                    <td th:text="${p.stock}"></td>
+                    <td th:text="${p.minimo}"></td>
+                    <td>
+                        <span th:if="${p.sinStock}" class="badge b-rojo">Sin stock</span>
+                        <span th:unless="${p.sinStock}" class="badge b-amarillo">Stock bajo</span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <div th:if="${#lists.isEmpty(stockBajo)}" class="vacio">
+                <i class="fa-solid fa-circle-check" style="color:#34d399;"></i>
+                Todos los productos tienen stock suficiente.
+            </div>
+        </div>
+
+        <div class="panel">
+            <h3><i class="fa-solid fa-store"></i> Ventas por origen</h3>
+            <div class="origen-card og-cat">
+                <div class="tag">Catálogo online</div>
+                <div class="monto" th:text="'S/ ' + ${#numbers.formatDecimal(totalCatalogo,1,'COMMA',2,'POINT')}">S/ 0.00</div>
+                <div class="np" th:text="${pedidosCatalogo} + ' pedidos'">0 pedidos</div>
+            </div>
+            <div class="origen-card og-adm">
+                <div class="tag">Administrativo</div>
+                <div class="monto" th:text="'S/ ' + ${#numbers.formatDecimal(totalAdmin,1,'COMMA',2,'POINT')}">S/ 0.00</div>
+                <div class="np" th:text="${pedidosAdmin} + ' ventas'">0 ventas</div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script th:inline="javascript">
+/*<![CDATA[*/
+const mesLabels   = /*[[${mesLabels}]]*/ [];
+const mesTotales  = /*[[${mesTotales}]]*/ [];
+const topProds    = /*[[${topProductos}]]*/ [];
+const categorias  = /*[[${categorias}]]*/ [];
+const metodosPago = /*[[${metodosPago}]]*/ [];
+/*]]>*/
+
+// Paleta del sistema (azul/morado)
+const PALETA = ['#8b5cf6','#3b82f6','#22d3ee','#34d399','#f59e0b','#ec4899','#ef4444','#6366f1','#a3e635','#f97316'];
+
+Chart.defaults.color = '#94a3b8';
+Chart.defaults.borderColor = 'rgba(255,255,255,.06)';
+Chart.defaults.font.family = "'Segoe UI', sans-serif";
+
+// ── Tendencia: LÍNEA con área degradada ──
+(() => {
+    const ctx = document.getElementById('chartTendencia').getContext('2d');
+    const grad = ctx.createLinearGradient(0, 0, 0, 280);
+    grad.addColorStop(0, 'rgba(139,92,246,.45)');
+    grad.addColorStop(1, 'rgba(59,130,246,.02)');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: mesLabels,
+            datasets: [{
+                label: 'Ventas (S/)',
+                data: mesTotales,
+                borderColor: '#8b5cf6',
+                backgroundColor: grad,
+                fill: true,
+                tension: .35,
+                pointRadius: 4,
+                pointBackgroundColor: '#22d3ee',
+                pointBorderColor: '#0f172a',
+                pointBorderWidth: 2,
+                borderWidth: 2.5
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false },
+                tooltip: { callbacks: { label: c => ' S/ ' + Number(c.parsed.y).toLocaleString('es-PE', {minimumFractionDigits:2}) } } },
+            scales: {
+                y: { beginAtZero: true, ticks: { callback: v => 'S/ ' + Number(v).toLocaleString('es-PE') } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+})();
+
+// ── Métodos de pago: DONA ──
+(() => {
+    if (!metodosPago.length) return;
+    new Chart(document.getElementById('chartPagos'), {
+        type: 'doughnut',
+        data: {
+            labels: metodosPago.map(m => m.metodo),
+            datasets: [{
+                data: metodosPago.map(m => Number(m.total)),
+                backgroundColor: PALETA,
+                borderColor: '#0f172a',
+                borderWidth: 3,
+                hoverOffset: 8
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            cutout: '62%',
+            plugins: {
+                legend: { position: 'bottom', labels: { boxWidth: 12, padding: 12 } },
+                tooltip: { callbacks: { label: c => {
+                    const m = metodosPago[c.dataIndex];
+                    return ' ' + m.metodo + ': S/ ' + Number(m.total).toLocaleString('es-PE', {minimumFractionDigits:2}) + ' (' + m.cantidad + ' trans.)';
+                } } }
+            }
+        }
+    });
+})();
+
+// ── Categorías: BARRAS HORIZONTALES ──
+(() => {
+    if (!categorias.length) return;
+    new Chart(document.getElementById('chartCategorias'), {
+        type: 'bar',
+        data: {
+            labels: categorias.map(c => c.nombre),
+            datasets: [{
+                data: categorias.map(c => Number(c.total)),
+                backgroundColor: PALETA,
+                borderRadius: 10,
+                barThickness: 20
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false },
+                tooltip: { callbacks: { label: c => ' S/ ' + Number(c.parsed.x).toLocaleString('es-PE', {minimumFractionDigits:2}) } } },
+            scales: {
+                x: { beginAtZero: true, ticks: { callback: v => 'S/ ' + Number(v).toLocaleString('es-PE') } },
+                y: { grid: { display: false } }
+            }
+        }
+    });
+})();
+
+// ── Top productos: BARRAS VERTICALES ──
+(() => {
+    if (!topProds.length) return;
+    const ctx = document.getElementById('chartTop').getContext('2d');
+    const grad = ctx.createLinearGradient(0, 0, 0, 300);
+    grad.addColorStop(0, '#6366f1');
+    grad.addColorStop(1, '#22d3ee');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: topProds.map(p => p.nombre.length > 14 ? p.nombre.slice(0, 14) + '…' : p.nombre),
+            datasets: [{
+                data: topProds.map(p => p.cantidad),
+                backgroundColor: grad,
+                borderRadius: 8,
+                barThickness: 26
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false },
+                tooltip: { callbacks: {
+                    title: c => topProds[c[0].dataIndex].nombre,
+                    label: c => ' ' + c.parsed.y + ' unidades vendidas'
+                } } },
+            scales: {
+                y: { beginAtZero: true, ticks: { stepSize: 1 } },
+                x: { grid: { display: false }, ticks: { maxRotation: 45, minRotation: 45 } }
+            }
+        }
+    });
+})();
+
+// ── Imprimir / Guardar como PDF ──
+function imprimirPDF() {
+    // Congelar cada gráfico como imagen para que salga nítido en el PDF
+    // (los canvas pueden salir en blanco al imprimir directamente)
+    const canvases = document.querySelectorAll('.chart-box canvas');
+    const reemplazos = [];
+
+    canvases.forEach(c => {
+        try {
+            const img = new Image();
+            img.src = c.toDataURL('image/png', 1.0);
+            img.style.width = '100%';
+            img.style.height = '100%';
+            img.style.objectFit = 'contain';
+            reemplazos.push({ canvas: c, img: img });
+            c.style.display = 'none';
+            c.parentNode.appendChild(img);
+        } catch (e) { /* si falla, se imprime el canvas normal */ }
+    });
+
+    setTimeout(() => {
+        window.print();
+        // Restaurar los gráficos interactivos después de imprimir
+        reemplazos.forEach(r => {
+            r.img.remove();
+            r.canvas.style.display = '';
+        });
+    }, 200);
+}
+</script>
+
+</body>
+</html>

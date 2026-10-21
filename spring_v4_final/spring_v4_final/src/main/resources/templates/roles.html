@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roles</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+
+    *{
+        margin:0;
+        padding:0;
+        box-sizing:border-box;
+    }
+
+    body{
+        background:
+            radial-gradient(circle at top left,#1e3a8a 0%,transparent 25%),
+            radial-gradient(circle at bottom right,#7c3aed 0%,transparent 25%),
+            #0f172a;
+        min-height:100vh;
+        font-family:'Segoe UI',sans-serif;
+        color:white;
+    }
+
+    /* MAIN */
+
+    .main{
+        margin-left:270px;
+        padding:35px;
+    }
+
+    /* TITULO */
+
+    .page-title{
+        font-size:32px;
+        font-weight:bold;
+
+        background:linear-gradient(
+            90deg,
+            #38bdf8,
+            #818cf8
+        );
+
+        -webkit-background-clip:text;
+        -webkit-text-fill-color:transparent;
+    }
+
+    /* CARD */
+
+    .card-modern{
+
+        background:rgba(255,255,255,.06);
+
+        backdrop-filter:blur(14px);
+
+        border:1px solid rgba(255,255,255,.1);
+
+        border-radius:22px;
+
+        padding:30px;
+
+        box-shadow:
+            0 0 30px rgba(0,0,0,.25);
+    }
+
+    /* TABLA */
+
+    .table{
+        color:#e2e8f0;
+        border-collapse:separate;
+        border-spacing:0 8px;
+    }
+
+    .table-light{
+        --bs-table-color: #93c5fd !important;
+        --bs-table-bg: transparent !important;
+        --bs-table-border-color: rgba(255,255,255,.08) !important;
+        background:transparent !important;
+        color:#93c5fd !important;
+    }
+
+    .table > :not(caption) > * > *{ background-color:transparent !important; }
+
+    .table thead{
+        background:rgba(255,255,255,.08);
+    }
+
+    .table thead th{
+        border:none;
+        color:#93c5fd !important;
+        font-size:13px;
+        font-weight:700;
+        text-transform:uppercase;
+        letter-spacing:1px;
+        padding:12px 16px;
+    }
+
+    .table tbody td{
+        color:#e2e8f0 !important;
+        padding:13px 16px;
+        font-size:14px;
+        border-color:rgba(255,255,255,.05);
+        vertical-align:middle;
+    }
+
+    .table tbody tr{
+
+        background:rgba(255,255,255,.04);
+        transition:.25s;
+    }
+
+    .table tbody tr:hover > td{ color:#e2e8f0 !important; }
+
+    .table tbody tr:hover{
+
+        background:
+            rgba(59,130,246,.1);
+
+        transform:scale(1.01);
+    }
+
+    .table td{
+        border-color:rgba(255,255,255,.08);
+        padding:18px;
+    }
+
+    /* BADGES */
+
+    .badge{
+        padding:9px 16px;
+        border-radius:50px;
+        font-size:13px;
+    }
+
+    /* BOTONES */
+
+    .btn{
+
+        border:none;
+        border-radius:12px;
+        transition:.3s;
+    }
+
+    .btn:hover{
+        transform:translateY(-2px);
+    }
+
+    .btn-primary{
+
+        background:
+            linear-gradient(
+                90deg,
+                #2563eb,
+                #06b6d4
+            );
+    }
+
+    .btn-info{
+        background:#0ea5e9;
+        color:white;
+    }
+
+    .btn-danger{
+        background:#ef4444;
+    }
+
+    .btn-dark{
+        background:#6366f1;
+    }
+
+    /* MODAL */
+
+    .modal-content{
+
+        background:#111827;
+        color:white;
+
+        border-radius:20px;
+
+        border:1px solid rgba(255,255,255,.1);
+    }
+
+    .modal-header{
+        border-bottom:1px solid rgba(255,255,255,.1);
+    }
+
+    .modal-footer{
+        border-top:1px solid rgba(255,255,255,.1);
+    }
+
+    .form-control,
+    .form-select{
+
+        background:#1e293b;
+        border:1px solid rgba(255,255,255,.1);
+        color:white;
+    }
+
+    .form-control:focus,
+    .form-select:focus{
+
+        background:#1e293b;
+        color:white;
+
+        border-color:#38bdf8;
+
+        box-shadow:
+            0 0 10px rgba(56,189,248,.4);
+    }
+
+    /* =========================
+   PERMISOS PREMIUM
+========================= */
+
+.permiso-card{
+
+    background:
+        rgba(255,255,255,.05);
+
+    border:
+        1px solid rgba(255,255,255,.08);
+
+    border-radius:18px;
+
+    padding:18px;
+
+    transition:.3s;
+
+    display:flex;
+    align-items:center;
+    gap:12px;
+
+    min-height:75px;
+}
+
+.permiso-card:hover{
+
+    transform:translateY(-3px);
+
+    background:
+        rgba(59,130,246,.12);
+
+    border-color:
+        rgba(59,130,246,.4);
+
+    box-shadow:
+        0 0 15px rgba(59,130,246,.25);
+}
+
+.permiso-card input[type="checkbox"]{
+
+    width:22px;
+    height:22px;
+
+    cursor:pointer;
+
+    accent-color:#3b82f6;
+}
+
+.permiso-card label{
+
+    font-weight:600;
+    font-size:15px;
+
+    cursor:pointer;
+
+    color:#f3f4f6;
+}
+
+#nombreRolPermiso{
+
+    text-align:center;
+
+    font-size:22px;
+
+    color:#38bdf8 !important;
+
+    margin-bottom:25px !important;
+}
+
+@media(max-width:768px){
+    .d-flex.justify-content-between{ flex-wrap:wrap; gap:12px; }
+    .btn-primary{ width:100%; }
+    .card-modern{ padding:16px; }
+    .table thead th{ font-size:11px; padding:8px; }
+    .table tbody td{ padding:10px; font-size:13px; }
+    .permiso-card{ min-height:60px; }
+    .modal-dialog{ margin:10px; }
+}
+
+</style>
+
+
+</head>
+<body>
+
+<div th:replace="fragments/sidebar :: sidebar"></div>
+
+<div class="main">
+
+    <div class="d-flex justify-content-between mb-4">
+        <h2 class="page-title">
+    Gestión de Perfiles
+</h2>
+
+        <button class="btn btn-primary" onclick="abrirNuevoPerfil()">
+            + Nuevo Perfil
+        </button>
+    </div>
+
+    <!-- Mensajes flash manejados por SweetAlert (ver script al final) -->
+
+    <div class="card-modern">
+
+        <table class="table table-hover text-center align-middle" id="tablaPerfiles">
+
+            <thead class="table-light">
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Descripción</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <tr th:each="r : ${roles}">
+                <td th:text="${r.id}"></td>
+                <td th:text="${r.nombre}"></td>
+                <td th:text="${r.descripcion}"></td>
+                <td>
+                    <span th:if="${r.estado}" class="badge bg-success">Activo</span>
+                    <span th:unless="${r.estado}" class="badge bg-danger">Inactivo</span>
+                </td>
+                <td>
+                    <!-- Editar con modal -->
+                    <button class="btn btn-info btn-sm"
+                            th:attr="data-id=${r.id},
+                                     data-nombre=${r.nombre},
+                                     data-descripcion=${r.descripcion},
+                                     data-estado=${r.estado}"
+                            onclick="editarPerfil(this)">
+                        ✏
+                    </button>
+
+
+
+<!-- PERMISOS -->
+<button class="btn btn-dark btn-sm"
+
+
+
+        th:if="${#authorization.expression('hasRole(''SUPERADMIN'') or hasRole(''ADMIN'')')}"
+
+        th:attr="
+            data-id=${r.id},
+            data-nombre=${r.nombre},
+            data-permisos=${#strings.listJoin(
+                r.permisos.![id],
+                ','
+            )}"
+
+        onclick="abrirPermisos(this)">
+
+    <i class="fa-solid fa-shield-halved"></i>
+
+</button>
+
+
+
+
+                    <!-- Eliminar con SweetAlert2 (bloquea Superadmin ID=1) -->
+                    <button class="btn btn-danger btn-sm"
+                            th:attr="data-id=${r.id}"
+                            onclick="eliminarPerfil(this)">
+                        🗑
+                    </button>
+                </td>
+            </tr>
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+<!-- MODAL NUEVO / EDITAR PERFIL -->
+<div class="modal fade" id="modalPerfil" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="formPerfil" th:action="@{/roles/guardar}" method="post">
+                <input type="hidden" id="perfilId" name="id">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalPerfilTitle">Nuevo Perfil</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label>Nombre <small style="color:#fca5a5;">*requerido — solo letras</small></label>
+                        <input type="text" id="perfilNombre" name="nombre" class="form-control"
+                               oninput="this.value=this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]/g,'').toUpperCase()">
+                        <div id="errorNombre" style="display:none;color:#fca5a5;font-size:12px;margin-top:4px;">
+                            El nombre es obligatorio y solo puede contener letras.
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label>Descripción <small style="color:#fca5a5;">*requerido</small></label>
+                        <input type="text" id="perfilDescripcion" name="descripcion" class="form-control">
+                        <div id="errorDescripcion" style="display:none;color:#fca5a5;font-size:12px;margin-top:4px;">
+                            La descripción es obligatoria.
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label>Estado</label>
+                        <select id="perfilEstado" name="estado" class="form-control">
+                            <option value="true">Activo</option>
+                            <option value="false">Inactivo</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" onclick="guardarPerfil()">Guardar</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<!-- MODAL PERMISOS -->
+<div class="modal fade" id="modalPermisos" tabindex="-1">
+
+    <div class="modal-dialog modal-dialog-centered">
+
+        <div class="modal-content">
+
+            <form th:action="@{/roles/guardar-permisos}" method="post">
+
+                <input type="hidden" name="rolId" id="rolPermisoId">
+
+                <div class="modal-header"
+     style="
+        background:
+        linear-gradient(
+            90deg,
+            #2563eb,
+            #7c3aed
+        );
+     ">
+                    <h5 class="modal-title">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        Permisos del Perfil
+                    </h5>
+
+                    <button type="button"
+                            class="btn-close btn-close-white"
+                            data-bs-dismiss="modal">
+                    </button>
+                </div>
+
+                <div class="modal-body">
+
+                    <h5 id="nombreRolPermiso"
+                        class="mb-4 text-primary fw-bold">
+                    </h5>
+
+                    <div class="row">
+
+                        <div class="col-md-6 mb-3"
+                             th:each="p : ${permisos}">
+
+                            <div class="permiso-card">
+
+                                <input class="form-check-input"
+                                       type="checkbox"
+                                       name="permisos"
+                                       th:value="${p.id}"
+
+                                       th:id="'permiso_' + ${p.id}">
+
+                                <label class="form-check-label fw-semibold d-flex align-items-center gap-2"
+       th:for="'permiso_' + ${p.id}">
+
+    <!-- DASHBOARD -->
+    <i class="fa-solid fa-chart-line text-info"
+       th:if="${p.nombre == 'DASHBOARD'}"></i>
+
+    <!-- PRODUCTOS -->
+    <i class="fa-solid fa-box-open text-primary"
+       th:if="${p.nombre == 'PRODUCTOS'}"></i>
+
+    <!-- CATEGORIAS -->
+    <i class="fa-solid fa-tags text-warning"
+       th:if="${p.nombre == 'CATEGORIAS'}"></i>
+
+    <!-- PROVEEDORES -->
+    <i class="fa-solid fa-truck-field text-success"
+       th:if="${p.nombre == 'PROVEEDORES'}"></i>
+
+    <!-- USUARIOS -->
+    <i class="fa-solid fa-users text-danger"
+       th:if="${p.nombre == 'USUARIOS'}"></i>
+
+    <!-- PERFILES -->
+    <i class="fa-solid fa-shield-halved text-light"
+       th:if="${p.nombre == 'PERFILES'}"></i>
+
+    <!-- MOVIMIENTOS -->
+    <i class="fa-solid fa-arrow-right-arrow-left text-secondary"
+       th:if="${p.nombre == 'MOVIMIENTOS'}"></i>
+
+    <span th:text="${p.nombre}"></span>
+
+</label>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button type="submit"
+                            class="btn btn-primary">
+
+                        Guardar Permisos
+
+                    </button>
+
+                    <button type="button"
+                            class="btn btn-secondary"
+                            data-bs-dismiss="modal">
+
+                        Cancelar
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<script>
+
+const modalPerfil =
+    new bootstrap.Modal(
+        document.getElementById('modalPerfil')
+);
+
+const modalPermisos =
+    new bootstrap.Modal(
+        document.getElementById('modalPermisos')
+);
+
+// =========================
+// LIMPIAR ERRORES
+// =========================
+function limpiarErroresPerfil(){
+    document.getElementById('errorNombre').style.display     = 'none';
+    document.getElementById('errorDescripcion').style.display = 'none';
+    document.getElementById('perfilNombre').style.borderColor    = '';
+    document.getElementById('perfilDescripcion').style.borderColor = '';
+}
+
+// =========================
+// NUEVO PERFIL
+// =========================
+function abrirNuevoPerfil(){
+    document.getElementById('formPerfil').reset();
+    document.getElementById('perfilId').value = '';
+    document.getElementById('modalPerfilTitle').textContent = 'Nuevo Perfil';
+    limpiarErroresPerfil();
+    modalPerfil.show();
+}
+
+// =========================
+// EDITAR PERFIL
+// =========================
+function editarPerfil(btn){
+    if(btn.getAttribute('data-nombre').toUpperCase() === 'SUPERADMIN'){
+        Swal.fire({
+            title: 'Acción no permitida',
+            text: 'El perfil "SUPERADMIN" no puede ser editado.',
+            icon: 'error',
+            confirmButtonText: 'Aceptar',
+            confirmButtonColor: '#6366f1'
+        });
+        return;
+    }
+    document.getElementById('perfilId').value          = btn.getAttribute('data-id');
+    document.getElementById('perfilNombre').value      = btn.getAttribute('data-nombre');
+    document.getElementById('perfilDescripcion').value = btn.getAttribute('data-descripcion');
+    document.getElementById('perfilEstado').value      = btn.getAttribute('data-estado') === 'true' ? 'true' : 'false';
+    document.getElementById('modalPerfilTitle').textContent = 'Editar Perfil';
+    limpiarErroresPerfil();
+    modalPerfil.show();
+}
+
+// =========================
+// GUARDAR PERFIL (con validación)
+// =========================
+function guardarPerfil(){
+    const nombre      = document.getElementById('perfilNombre').value.trim();
+    const descripcion = document.getElementById('perfilDescripcion').value.trim();
+    const soloLetras  = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/;
+    let ok = true;
+
+    // Validar nombre
+    if (!nombre || !soloLetras.test(nombre)) {
+        document.getElementById('errorNombre').style.display     = 'block';
+        document.getElementById('perfilNombre').style.borderColor = '#ef4444';
+        ok = false;
+    } else {
+        document.getElementById('errorNombre').style.display     = 'none';
+        document.getElementById('perfilNombre').style.borderColor = '';
+    }
+
+    // Validar descripción
+    if (!descripcion) {
+        document.getElementById('errorDescripcion').style.display     = 'block';
+        document.getElementById('perfilDescripcion').style.borderColor = '#ef4444';
+        ok = false;
+    } else {
+        document.getElementById('errorDescripcion').style.display     = 'none';
+        document.getElementById('perfilDescripcion').style.borderColor = '';
+    }
+
+    if (!ok) return;
+
+    Swal.fire({
+        title: 'Confirmar cambios',
+        text: '¿Deseas guardar este perfil?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, guardar',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#6366f1'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            document.getElementById('formPerfil').submit();
+        }
+    });
+}
+
+// =========================
+// ABRIR PERMISOS
+// =========================
+function abrirPermisos(btn){
+
+    const id =
+        btn.getAttribute('data-id');
+
+    const nombre =
+        btn.getAttribute('data-nombre');
+
+    if(nombre.toUpperCase() === 'SUPERADMIN'){
+        Swal.fire({
+            title: 'Acción no permitida',
+            text: 'Los módulos del perfil "SUPERADMIN" no pueden ser editados. Este perfil tiene acceso completo al sistema.',
+            icon: 'error',
+            confirmButtonText: 'Aceptar',
+            confirmButtonColor: '#6366f1'
+        });
+        return;
+    }
+
+    const permisos =
+        btn.getAttribute('data-permisos');
+
+    document.getElementById('rolPermisoId')
+        .value = id;
+
+    document.getElementById('nombreRolPermiso')
+        .innerText = nombre;
+
+    // limpiar checks
+    document.querySelectorAll(
+        '#modalPermisos input[type=checkbox]'
+    ).forEach(c => c.checked = false);
+
+    // marcar permisos
+    if(permisos){
+
+        const lista = permisos.split(',');
+
+        lista.forEach(idPermiso => {
+
+            const checkbox =
+                document.getElementById(
+                    'permiso_' + idPermiso
+                );
+
+            if(checkbox){
+
+                checkbox.checked = true;
+            }
+
+        });
+    }
+
+    modalPermisos.show();
+}
+
+// =========================
+// ELIMINAR PERFIL
+// =========================
+function eliminarPerfil(btn){
+
+    const id =
+        btn.getAttribute('data-id');
+
+    // PROTEGER SUPERADMIN
+    if(id === '1'){
+
+        Swal.fire({
+
+            title: 'Acción no permitida',
+
+            text: 'El perfil "Superadmin" no se puede eliminar.',
+
+            icon: 'error',
+
+            confirmButtonText: 'Aceptar'
+
+        });
+
+        return;
+    }
+
+    Swal.fire({
+
+        title: 'Eliminar perfil',
+
+        text: '¿Deseas eliminar este perfil? Esta acción no se puede deshacer.',
+
+        icon: 'warning',
+
+        showCancelButton: true,
+
+        confirmButtonText: 'Sí, eliminar',
+
+        cancelButtonText: 'Cancelar'
+
+    }).then((result)=>{
+
+        if(result.isConfirmed){
+
+            const f=document.createElement('form');
+            f.method='POST'; f.action='/roles/eliminar/'+id;
+            document.body.appendChild(f); f.submit();
+        }
+
+    });
+}
+
+</script>
+
+<script src="/js/main.js"></script>
+
+<!-- SweetAlert flash messages -->
+<th:block th:if="${error}">
+<script>
+    Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: '[(${error})]',
+        confirmButtonColor: '#6366f1'
+    });
+</script>
+</th:block>
+<th:block th:if="${success}">
+<script>
+    Swal.fire({
+        icon: 'success',
+        title: '¡Listo!',
+        text: '[(${success})]',
+        confirmButtonColor: '#6366f1',
+        timer: 2500,
+        showConfirmButton: false
+    });
+</script>
+</th:block>
+
+</body>
+</html>

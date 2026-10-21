@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Usuario</title>
+</head>
+
+<body>
+
+<h1>Nuevo Usuario</h1>
+<form th:action="@{/usuarios/guardar}"
+      th:object="${usuario}"
+      method="post"
+      id="formUsuario">
+
+    <input type="hidden" th:field="*{id}" id="usuarioId">
+
+    <label>Username:</label>
+    <input type="text"
+           th:field="*{username}"
+           id="usuarioUsername"
+           required>
+    <br><br>
+
+    <label>Password:</label>
+    <input type="password"
+           th:field="*{password}"
+           id="usuarioPassword"
+           required>
+    <br><br>
+
+    <label>Nombre:</label>
+    <input type="text"
+           th:field="*{nombre}"
+           id="usuarioNombre">
+    <br><br>
+
+    <label>Email:</label>
+    <input type="email"
+           th:field="*{email}"
+           id="usuarioEmail">
+    <br><br>
+
+    <label>Activo:</label>
+    <input type="checkbox"
+           th:field="*{activo}"
+           id="usuarioActivo">
+    <br><br>
+
+    <label>Roles:</label>
+    <div th:each="r : ${roles}">
+        <input type="checkbox"
+               name="rolesSeleccionados"
+               th:value="${r.id}"
+               class="rol-checkbox"
+               id="rol${r.id}">
+        <span th:text="${r.nombre}"></span>
+    </div>
+    <br>
+
+    <button type="submit">Guardar</button>
+</form>
+
+</body>
+</html>

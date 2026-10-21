@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo</title>
+
+    <!-- FONT AWESOME -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+
+    <!-- SWIPER -->
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
+
+    <!-- CSS CATÁLOGO -->
+    <link rel="stylesheet" th:href="@{/css/catalogo.css}">
+</head>
+<body>
+
+<!-- EFECTOS FONDO -->
+<div class="bg-glow glow1"></div>
+<div class="bg-glow glow2"></div>
+<div class="bg-glow glow3"></div>
+
+<!-- TOP INFO BAR -->
+<div class="top-info-bar">
+    <div><i class="fa-solid fa-truck-fast"></i> Envíos gratis desde S/ 299</div>
+    <div><i class="fa-solid fa-shield-halved"></i> Garantía oficial</div>
+    <div><i class="fa-solid fa-headset"></i> Soporte 24/7</div>
+</div>
+
+<!-- NAVBAR -->
+<header class="navbar">
+
+    <!-- LOGO DINÁMICO -->
+    <div class="logo">
+        <div th:if="${logoActivo != null}" class="logo-icon">
+            <img th:src="${logoActivo.ruta}" alt="Logo"
+                 style="height:48px;width:48px;object-fit:contain;border-radius:10px;">
+        </div>
+        <div th:if="${logoActivo == null}" class="logo-icon">
+            <i class="fa-solid fa-gamepad"></i>
+        </div>
+        <div>
+            <h2>LixGameCenter</h2>
+            <span>Gaming Store</span>
+        </div>
+    </div>
+
+    <!-- MENU -->
+    <nav>
+        <a href="#inicio">Inicio</a>
+        <a href="#catalogo">Catálogo</a>
+        <a href="#ofertas">Ofertas</a>
+        <a href="#contacto">Contacto</a>
+    </nav>
+
+    <!-- CARRITO -->
+    <button class="cart-btn" id="openCart">
+        <i class="fa-solid fa-cart-shopping"></i>
+        <span id="cart-count">0</span>
+    </button>
+
+</header>
+
+<!-- MAIN -->
+<main class="main" id="inicio">
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+        <div>
+            <h1>Catálogo</h1>
+            <p>Tecnología premium para setups profesionales</p>
+        </div>
+        <div class="top-actions">
+            <div class="search-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="searchInput" placeholder="Buscar productos...">
+            </div>
+            <select id="sortSelect" class="sort-select">
+                <option value="default">Ordenar</option>
+                <option value="price-low">Menor precio</option>
+                <option value="price-high">Mayor precio</option>
+                <option value="stock">Más stock</option>
+                <option value="name">Nombre A-Z</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- ====================== SWIPER DINÁMICO ====================== -->
+    <div class="swiper heroSwiper">
+        <div class="swiper-wrapper">
+
+            <!-- SLIDES GESTIONADOS DESDE EL ADMIN -->
+            <th:block th:if="${!#lists.isEmpty(sliders)}">
+                <div class="swiper-slide slide" th:each="sl,iterStat : ${sliders}">
+                    <div class="slide-bg-img" th:style="|background-image:url('${sl.ruta}')|"></div>
+                    <div class="slide-content">
+                        <span th:text="${sl.titulo != null and sl.titulo != '' ? sl.titulo : 'PRODUCTO DESTACADO'}"></span>
+                        <h2 th:text="${sl.subtitulo != null and sl.subtitulo != '' ? sl.subtitulo : 'Tecnología de alto rendimiento'}"></h2>
+                        <p>Explora nuestra colección premium</p>
+                        <button onclick="document.getElementById('catalogo').scrollIntoView({behavior:'smooth'})">
+                            Ver Catálogo
+                        </button>
+                    </div>
+                </div>
+            </th:block>
+
+            <!-- SLIDES POR DEFECTO si no hay ninguno cargado -->
+            <th:block th:if="${#lists.isEmpty(sliders)}">
+                <div class="swiper-slide slide slide1">
+                    <div class="slide-content">
+                        <span>SETUP GAMER</span>
+                        <h2>Potencia tu experiencia gaming</h2>
+                        <p>RGB, velocidad y máxima inmersión</p>
+                        <button>Explorar</button>
+                    </div>
+                </div>
+                <div class="swiper-slide slide slide2">
+                    <div class="slide-content">
+                        <span>MONITORES</span>
+                        <h2>Monitores ultra fluidos</h2>
+                        <p>144Hz - 240Hz - 4K</p>
+                        <button>Comprar</button>
+                    </div>
+                </div>
+                <div class="swiper-slide slide slide3">
+                    <div class="slide-content">
+                        <span>RTX SERIES</span>
+                        <h2>Rendimiento extremo</h2>
+                        <p>Potencia profesional para gaming competitivo</p>
+                        <button>Ver más</button>
+                    </div>
+                </div>
+            </th:block>
+
+        </div>
+        <div class="swiper-pagination"></div>
+    </div>
+
+    <!-- STATS -->
+    <section class="stats">
+        <div class="stat-card">
+            <i class="fa-solid fa-box-open"></i>
+            <div>
+                <h3 th:text="${#lists.size(productos)} + '+'">0+</h3>
+                <p>Productos premium</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <i class="fa-solid fa-users"></i>
+            <div><h3>8K+</h3><p>Clientes satisfechos</p></div>
+        </div>
+        <div class="stat-card">
+            <i class="fa-solid fa-star"></i>
+            <div><h3>4.9</h3><p>Valoración promedio</p></div>
+        </div>
+        <div class="stat-card">
+            <i class="fa-solid fa-bolt"></i>
+            <div><h3>24h</h3><p>Envíos rápidos</p></div>
+        </div>
+    </section>
+
+    <!-- RESULTADOS -->
+    <div class="results-bar">
+        <h3>Productos disponibles</h3>
+        <span id="resultsCount"
+              th:text="${#lists.size(productos)} + ' productos encontrados'">
+        </span>
+    </div>
+
+    <!-- ====================== LAYOUT ====================== -->
+    <div class="catalog-layout" id="catalogo">
+
+        <!-- FILTROS -->
+        <aside class="filters">
+
+            <div class="filter-header">
+                <h3>Filtros</h3>
+                <button id="clearFilters">Limpiar</button>
+            </div>
+
+            <!-- CATEGORÍAS DINÁMICAS -->
+            <div class="filter-box">
+                <h4>Categorías</h4>
+                <label th:each="cat : ${categorias}">
+                    <input type="checkbox" class="category-filter"
+                           th:value="${cat.nombre}">
+                    <span th:text="${cat.nombre}"></span>
+                </label>
+            </div>
+
+            <!-- DISPONIBILIDAD -->
+            <div class="filter-box">
+                <h4>Disponibilidad</h4>
+                <label>
+                    <input type="checkbox" id="stockFilter">
+                    Solo productos disponibles
+                </label>
+            </div>
+
+            <!-- PRECIO -->
+            <div class="filter-box">
+                <h4>Precio máximo</h4>
+                <input type="range" id="priceRange" min="0" max="9999" value="9999">
+                <div class="price-display">
+                    Hasta: <span id="priceValue">S/ 9999</span>
+                </div>
+            </div>
+
+        </aside>
+
+        <!-- ====================== PRODUCTOS DINÁMICOS ====================== -->
+        <section class="products" id="productsContainer">
+
+            <div class="product-card"
+                 th:each="p : ${productos}"
+                 th:data-category="${p.categoria != null ? p.categoria.nombre : 'Sin categoría'}"
+                 th:data-price="${p.precio}"
+                 th:data-stock="${p.stock}">
+
+                <!-- BADGE STOCK BAJO -->
+                <div class="product-badge"
+                     th:if="${p.stock != null and p.stock <= 3 and p.stock > 0}">
+                    POCO STOCK
+                </div>
+                <div class="product-badge"
+                     th:if="${p.stock != null and p.stock > 3}"
+                     style="background:linear-gradient(135deg,#10b981,#34d399);">
+                    DISPONIBLE
+                </div>
+
+                <!-- FAVORITO -->
+                <button class="favorite-btn">
+                    <i class="fa-regular fa-heart"></i>
+                </button>
+
+                <!-- IMAGEN -->
+                <div class="product-img-wrap">
+                    <img th:if="${p.imagenes != null and !#lists.isEmpty(p.imagenes)}"
+                         th:src="${p.imagenes[0].ruta}"
+                         th:alt="${p.nombre}"
+                         class="product-img">
+                    <div th:if="${p.imagenes == null or #lists.isEmpty(p.imagenes)}"
+                         class="product-img"
+                         style="display:flex;align-items:center;justify-content:center;
+                                background:linear-gradient(135deg,rgba(37,99,235,.2),rgba(124,58,237,.2));
+                                border-radius:16px;height:200px;color:#64748b;font-size:48px;">
+                        <i class="fa-solid fa-image"></i>
+                    </div>
+                </div>
+
+                <!-- INFO -->
+                <div class="product-info">
+
+                    <div class="product-meta">
+                        <span class="category-tag"
+                              th:text="${p.categoria != null ? p.categoria.nombre : 'Sin categoría'}">
+                        </span>
+                        <!-- GALERÍA si hay más imágenes -->
+                        <span th:if="${p.imagenes != null and #lists.size(p.imagenes) > 1}"
+                              style="font-size:11px;color:#64748b;">
+                            <i class="fa-solid fa-images"></i>
+                            <span th:text="${#lists.size(p.imagenes)}"></span> fotos
+                        </span>
+                    </div>
+
+                    <h3 th:text="${p.nombre}">Producto</h3>
+
+                    <p class="product-desc" th:text="${p.detalle}">Descripción</p>
+
+                    <!-- STOCK VISUAL -->
+                    <div th:if="${p.stock != null and p.stock > 3}"
+                         class="stock available">
+                        <div class="stock-dot"></div>
+                        <span th:text="'Stock disponible: ' + ${p.stock}"></span>
+                    </div>
+                    <div th:if="${p.stock != null and p.stock <= 3 and p.stock > 0}"
+                         class="stock low">
+                        <div class="stock-dot"></div>
+                        <span th:text="'Últimas ' + ${p.stock} + ' unidades'"></span>
+                    </div>
+                    <div th:if="${p.stock == null or p.stock <= 0}"
+                         class="stock out">
+                        <div class="stock-dot"></div>
+                        <span>Agotado</span>
+                    </div>
+
+                    <!-- PRECIO -->
+                    <div class="price-row">
+                        <span class="price">
+                            S/ <span th:text="${p.precio}"></span>
+                        </span>
+                    </div>
+
+                    <!-- BOTÓN CARRITO -->
+                    <button class="add-cart"
+                            th:data-id="${p.id}"
+                            th:data-name="${p.nombre}"
+                            th:data-price="${p.precio}"
+                            th:data-stock="${p.stock}"
+                            th:data-img="${p.imagenes != null and !#lists.isEmpty(p.imagenes) ? p.imagenes[0].ruta : ''}"
+                            th:disabled="${p.stock == null or p.stock <= 0}">
+                        <i class="fa-solid fa-cart-shopping"></i>
+                        <span th:if="${p.stock != null and p.stock > 0}">Agregar al carrito</span>
+                        <span th:if="${p.stock == null or p.stock <= 0}">Sin stock</span>
+                    </button>
+
+                </div>
+
+            </div>
+
+            <!-- EMPTY STATE si no hay productos -->
+            <div th:if="${#lists.isEmpty(productos)}"
+                 style="text-align:center;padding:80px;color:#64748b;grid-column:1/-1;">
+                <i class="fa-solid fa-box-open" style="font-size:64px;margin-bottom:16px;display:block;"></i>
+                <h3>No hay productos disponibles</h3>
+                <p>Vuelve pronto para ver novedades.</p>
+            </div>
+
+        </section>
+
+    </div>
+
+</main>
+
+<!-- CART PANEL -->
+<div class="cart-panel" id="cartPanel">
+    <div class="cart-header">
+        <h3><i class="fa-solid fa-cart-shopping"></i> Carrito</h3>
+        <button id="closeCart"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="cart-items" id="cartItems"></div>
+    <div class="cart-footer">
+        <div style="display:flex;align-items:center;justify-content:space-between;
+                    padding:12px 16px;border-top:1px solid rgba(255,255,255,.07);margin-bottom:12px;">
+            <span style="font-size:13px;color:#94a3b8;font-weight:600;">Total</span>
+            <span id="cartTotal" style="font-size:20px;font-weight:900;color:#34d399;">S/ 0</span>
+        </div>
+        <div style="display:flex;gap:8px;padding:0 12px 14px;">
+            <button id="clearCart"
+                    style="flex:0 0 auto;padding:12px 14px;border:1px solid rgba(239,68,68,.3);
+                           border-radius:12px;background:rgba(239,68,68,.1);color:#f87171;
+                           font-size:12px;font-weight:700;cursor:pointer;transition:.2s;
+                           display:flex;align-items:center;gap:6px;white-space:nowrap;"
+                    onmouseover="this.style.background='rgba(239,68,68,.2)'"
+                    onmouseout="this.style.background='rgba(239,68,68,.1)'">
+                <i class="fa-solid fa-trash"></i> Vaciar
+            </button>
+            <button class="checkout-btn"
+                    style="flex:1;padding:13px;border:none;border-radius:12px;
+                           background:linear-gradient(135deg,#2563eb,#7c3aed);
+                           color:white;font-size:14px;font-weight:800;cursor:pointer;
+                           display:flex;align-items:center;justify-content:center;gap:8px;
+                           transition:.2s;box-shadow:0 4px 14px rgba(99,102,241,.35);">
+                <i class="fa-solid fa-lock"></i> Finalizar compra
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- OVERLAY -->
+<div class="overlay" id="overlay"></div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- Config datos de pago (leídos por JS) -->
+<div id="checkoutConfig" style="display:none;"
+     th:data-yape="${yapeNumero}"
+     th:data-nombre="${yapeNombre}"
+     th:data-qr="${yapeQr}"
+     th:data-banco="${transBanco}"
+     th:data-cuenta="${transCuenta}"
+     th:data-cci="${transCci}"></div>
+
+<!-- ══════════════════════════════════════════════
+     CHECKOUT FULL-PAGE — DARK THEME
+══════════════════════════════════════════════ -->
+<div id="paymentModal" style="display:none;position:fixed;inset:0;z-index:2000;
+     background:#0a0f1e;overflow-y:auto;">
+
+  <!-- Topbar glassy -->
+  <div style="background:rgba(10,15,30,.92);backdrop-filter:blur(16px);
+              border-bottom:1px solid rgba(255,255,255,.07);padding:13px 28px;
+              display:flex;align-items:center;justify-content:space-between;
+              position:sticky;top:0;z-index:10;box-shadow:0 4px 20px rgba(0,0,0,.4);">
+    <button onclick="cerrarModalPago()" type="button"
+            style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+                   color:#94a3b8;padding:8px 16px;border-radius:10px;cursor:pointer;
+                   font-size:13px;font-weight:600;display:flex;align-items:center;gap:7px;
+                   transition:.2s;" onmouseover="this.style.background='rgba(255,255,255,.1)'"
+            onmouseout="this.style.background='rgba(255,255,255,.06)'">
+      <i class="fa-solid fa-arrow-left" style="font-size:11px;"></i> Volver al catálogo
+    </button>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div style="width:30px;height:30px;border-radius:8px;
+                  background:linear-gradient(135deg,#2563eb,#7c3aed);
+                  display:flex;align-items:center;justify-content:center;">
+        <i class="fa-solid fa-lock" style="color:white;font-size:12px;"></i>
+      </div>
+      <span style="font-size:15px;font-weight:800;color:#e2e8f0;">Finalizar Compra</span>
+    </div>
+    <div style="width:120px;"></div>
+  </div>
+
+  <!-- Grid principal -->
+  <div id="checkoutGrid"
+       style="max-width:1100px;margin:0 auto;padding:28px 20px;
+              display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start;">
+
+    <!-- ═══ IZQUIERDA: PASOS ═══ -->
+    <div style="display:flex;flex-direction:column;gap:14px;">
+
+      <!-- PASO 1 -->
+      <div class="co-card">
+        <div class="co-step-hdr">
+          <span class="co-num">1</span>
+          <div>
+            <div style="font-size:15px;font-weight:800;color:#e2e8f0;">Información de Contacto</div>
+            <div style="font-size:11px;color:#64748b;font-weight:400;margin-top:2px;">Tus datos personales para el pedido</div>
+          </div>
+        </div>
+        <!-- DNI / RUC -->
+        <div style="margin-bottom:14px;">
+          <label class="co-label"><i class="fa-solid fa-id-card" style="color:#6366f1;margin-right:6px;"></i>DNI o RUC</label>
+          <div style="display:flex;gap:8px;position:relative;">
+            <div style="flex:1;position:relative;">
+              <input type="text" id="payDoc" class="co-input"
+                     placeholder="Ej: 71234567"
+                     maxlength="11" autocomplete="off"
+                     oninput="this.value=this.value.replace(/\D/g,'');onDocInput(this)">
+              <div id="dniDropdown"
+                   style="display:none;position:absolute;z-index:9999;left:0;right:0;
+                          top:calc(100% + 4px);background:#1e293b;
+                          border:1px solid rgba(99,102,241,.35);border-radius:10px;
+                          overflow:hidden;box-shadow:0 12px 32px rgba(0,0,0,.6);
+                          max-height:180px;overflow-y:auto;"></div>
+            </div>
+            <button onclick="buscarDoc()" type="button" class="co-btn-primary">
+              <i class="fa-solid fa-magnifying-glass"></i> Buscar
+            </button>
+          </div>
+          <div id="errDoc" class="co-err">Ingresa un DNI (8 dígitos) o RUC (11 dígitos).</div>
+        </div>
+        <!-- Nombre -->
+        <div style="margin-bottom:14px;">
+          <label class="co-label"><i class="fa-solid fa-user" style="color:#6366f1;margin-right:6px;"></i>Nombre / Razón Social</label>
+          <input type="text" id="payNombre" class="co-input" placeholder="Se llena automático o escribe">
+          <div id="errNombre" class="co-err">Ingresa el nombre completo.</div>
+        </div>
+        <!-- Email + Celular -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div>
+            <label class="co-label"><i class="fa-solid fa-envelope" style="color:#6366f1;margin-right:6px;"></i>Correo</label>
+            <input type="email" id="payCorreo" class="co-input" placeholder="tu@correo.com">
+            <div id="errCorreo" class="co-err">Correo inválido.</div>
+          </div>
+          <div>
+            <label class="co-label"><i class="fa-solid fa-mobile-screen" style="color:#6366f1;margin-right:6px;"></i>Celular</label>
+            <input type="text" id="payCelular" class="co-input" placeholder="9XXXXXXXX" maxlength="9"
+                   oninput="this.value=this.value.replace(/\D/g,'')">
+            <div id="errCelular" class="co-err">9 dígitos, empieza en 9.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PASO 2: Entrega -->
+      <div class="co-card">
+        <div class="co-step-hdr">
+          <span class="co-num">2</span>
+          <div>
+            <div style="font-size:15px;font-weight:800;color:#e2e8f0;">Forma de Entrega</div>
+            <div style="font-size:11px;color:#64748b;font-weight:400;margin-top:2px;">¿Cómo quieres recibir tu pedido?</div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <label class="co-delivery-opt active" id="optDomicilio">
+            <input type="radio" name="entrega" value="DOMICILIO" checked onchange="toggleEntrega('DOMICILIO')">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="width:38px;height:38px;border-radius:10px;background:rgba(37,99,235,.15);
+                          display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <i class="fa-solid fa-truck" style="color:#60a5fa;font-size:16px;"></i>
+              </div>
+              <div>
+                <div style="font-weight:700;font-size:13px;color:#e2e8f0;">Envío a domicilio</div>
+                <div style="font-size:11px;color:#64748b;">Te lo llevamos</div>
+              </div>
+            </div>
+          </label>
+          <label class="co-delivery-opt" id="optTienda">
+            <input type="radio" name="entrega" value="TIENDA" onchange="toggleEntrega('TIENDA')">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="width:38px;height:38px;border-radius:10px;background:rgba(124,58,237,.15);
+                          display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <i class="fa-solid fa-store" style="color:#a78bfa;font-size:16px;"></i>
+              </div>
+              <div>
+                <div style="font-weight:700;font-size:13px;color:#e2e8f0;">Recojo en tienda</div>
+                <div style="font-size:11px;color:#64748b;">Retiro personal</div>
+              </div>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <!-- PASO 3: Dirección -->
+      <div class="co-card" id="stepDireccion">
+        <div class="co-step-hdr">
+          <span class="co-num">3</span>
+          <div>
+            <div style="font-size:15px;font-weight:800;color:#e2e8f0;">Dirección de Entrega</div>
+            <div style="font-size:11px;color:#64748b;font-weight:400;margin-top:2px;">¿Dónde te enviamos el pedido?</div>
+          </div>
+        </div>
+        <!-- Campo dirección + botón GPS -->
+        <div id="dirInputWrap"
+             style="display:flex;align-items:center;gap:0;border-radius:10px;overflow:hidden;
+                    background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);
+                    transition:.2s;">
+          <i class="fa-solid fa-location-dot"
+             style="color:#6366f1;font-size:15px;padding:0 13px;flex-shrink:0;"></i>
+          <input type="text" id="payDireccion"
+                 style="flex:1;background:transparent;border:none;outline:none;
+                        color:#e2e8f0;font-size:14px;padding:12px 0;"
+                 placeholder="Ej: Av. Chinchaysuyo 245, J.L. Ortiz, Chiclayo"
+                 oninput="document.getElementById('dirPreview').style.display='none'">
+          <!-- Separador -->
+          <div style="width:1px;height:20px;background:rgba(255,255,255,.1);flex-shrink:0;"></div>
+          <!-- Botón GPS automático -->
+          <button type="button" id="btnGps" onclick="detectarUbicacion()"
+                  title="Detectar mi ubicación automáticamente"
+                  style="background:none;border:none;cursor:pointer;padding:0 12px;
+                         height:100%;display:flex;align-items:center;justify-content:center;
+                         gap:5px;color:#94a3b8;font-size:12px;font-weight:600;
+                         transition:.2s;white-space:nowrap;"
+                  onmouseover="this.style.color='#a78bfa'"
+                  onmouseout="this.style.color='#94a3b8'">
+            <i class="fa-solid fa-crosshairs" id="gpsIcon" style="font-size:14px;"></i>
+            <span id="gpsTxt">Ubicación</span>
+          </button>
+          <!-- Separador -->
+          <div style="width:1px;height:20px;background:rgba(255,255,255,.1);flex-shrink:0;"></div>
+          <!-- Botón mapa interactivo -->
+          <button type="button" onclick="abrirMapaPicker()"
+                  title="Seleccionar en el mapa"
+                  style="background:none;border:none;cursor:pointer;padding:0 13px;
+                         height:100%;display:flex;align-items:center;justify-content:center;
+                         gap:5px;color:#94a3b8;font-size:12px;font-weight:600;
+                         transition:.2s;white-space:nowrap;"
+                  onmouseover="this.style.color='#34d399'"
+                  onmouseout="this.style.color='#94a3b8'">
+            <i class="fa-solid fa-map-location-dot" style="font-size:14px;"></i>
+            <span>Mapa</span>
+          </button>
+        </div>
+
+        <!-- Preview mapa (link a Google Maps) -->
+        <div id="dirPreview" style="display:none;margin-top:10px;border-radius:10px;overflow:hidden;
+             border:1px solid rgba(255,255,255,.08);">
+          <div style="background:rgba(255,255,255,.03);padding:10px 14px;
+                      display:flex;align-items:center;justify-content:space-between;gap:10px;">
+            <div style="display:flex;align-items:center;gap:8px;min-width:0;">
+              <i class="fa-solid fa-map-pin" style="color:#34d399;flex-shrink:0;"></i>
+              <span id="dirPreviewTxt"
+                    style="font-size:12px;color:#94a3b8;overflow:hidden;
+                           text-overflow:ellipsis;white-space:nowrap;"></span>
+            </div>
+            <a id="dirMapsLink" href="#" target="_blank"
+               style="display:flex;align-items:center;gap:5px;padding:5px 10px;
+                      background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.25);
+                      border-radius:8px;color:#34d399;font-size:11px;font-weight:700;
+                      text-decoration:none;white-space:nowrap;flex-shrink:0;">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i> Ver en Maps
+            </a>
+          </div>
+        </div>
+
+        <div id="errDireccion" class="co-err">Ingresa tu dirección de entrega.</div>
+        <div id="errGps" style="display:none;margin-top:6px;font-size:12px;color:#fbbf24;
+             display:flex;align-items:center;gap:6px;">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span id="errGpsTxt">No se pudo obtener la ubicación.</span>
+        </div>
+      </div>
+
+      <!-- PASO 4: Pago -->
+      <div class="co-card">
+        <div class="co-step-hdr">
+          <span class="co-num" id="numPaso4">4</span>
+          <div>
+            <div style="font-size:15px;font-weight:800;color:#e2e8f0;">Método de Pago</div>
+            <div style="font-size:11px;color:#64748b;font-weight:400;margin-top:2px;">Elige cómo quieres pagar</div>
+          </div>
+        </div>
+
+        <!-- Tabs de método -->
+        <div style="display:flex;gap:0;margin-bottom:18px;border-radius:12px;
+                    overflow:hidden;border:1px solid rgba(255,255,255,.08);">
+          <label class="co-method-tab active" id="optYape" style="flex:1;">
+            <input type="radio" name="metodoPago" value="YAPE" checked onchange="toggleMetodo('YAPE')">
+            <i class="fa-solid fa-mobile-screen-button"></i>
+            <span>Yape</span>
+          </label>
+          <label class="co-method-tab" id="optTransferencia" style="flex:1;border-left:1px solid rgba(255,255,255,.08);">
+            <input type="radio" name="metodoPago" value="TRANSFERENCIA" onchange="toggleMetodo('TRANSFERENCIA')">
+            <i class="fa-solid fa-building-columns"></i>
+            <span>Transferencia</span>
+          </label>
+        </div>
+
+        <!-- ── YAPE ── -->
+        <div id="secYape">
+          <!-- Banner Yape -->
+          <div style="border-radius:14px;overflow:hidden;margin-bottom:16px;position:relative;">
+            <div style="background:linear-gradient(135deg,#4f1dab,#7c3aed,#a855f7);
+                        padding:20px 22px;position:relative;">
+              <div style="position:absolute;top:0;right:0;width:160px;height:100%;
+                          background:radial-gradient(circle at 80% 50%,rgba(255,255,255,.1),transparent);
+                          pointer-events:none;"></div>
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;">
+                <div>
+                  <div style="font-size:11px;color:rgba(255,255,255,.6);text-transform:uppercase;
+                              letter-spacing:1.5px;font-weight:700;margin-bottom:6px;">Yapea al número</div>
+                  <div id="yapeNumDisplay"
+                       style="font-size:28px;font-weight:900;color:white;letter-spacing:5px;
+                              text-shadow:0 0 20px rgba(255,255,255,.3);"></div>
+                  <div id="yapeNomDisplay"
+                       style="font-size:12px;color:rgba(255,255,255,.65);margin-top:5px;
+                              display:flex;align-items:center;gap:5px;">
+                    <i class="fa-solid fa-circle-check" style="font-size:10px;color:#86efac;"></i>
+                    <span></span>
+                  </div>
+                </div>
+                <button onclick="abrirQR()" type="button"
+                        style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);
+                               border-radius:12px;padding:12px 16px;cursor:pointer;color:white;
+                               display:flex;flex-direction:column;align-items:center;gap:4px;
+                               transition:.2s;flex-shrink:0;"
+                        onmouseover="this.style.background='rgba(255,255,255,.25)'"
+                        onmouseout="this.style.background='rgba(255,255,255,.15)'">
+                  <i class="fa-solid fa-qrcode" style="font-size:22px;"></i>
+                  <span style="font-size:10px;font-weight:700;">Ver QR</span>
+                </button>
+              </div>
+            </div>
+            <div style="background:rgba(255,255,255,.04);border-top:1px solid rgba(255,255,255,.08);
+                        padding:10px 22px;font-size:11px;color:#64748b;
+                        display:flex;align-items:center;gap:6px;">
+              <i class="fa-solid fa-circle-info" style="color:#6366f1;"></i>
+              Luego de yapear, ingresa el código de operación de tu comprobante
+            </div>
+          </div>
+          <!-- Código + Voucher -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div>
+              <label class="co-label">Código de Operación <span style="color:#ef4444;">*</span></label>
+              <input type="text" id="payOperacion" class="co-input"
+                     placeholder="Ej: 1234567" maxlength="20"
+                     oninput="this.value=this.value.replace(/[^0-9a-zA-Z]/g,'')">
+              <div id="errOperacion" class="co-err">Código inválido o ya registrado.</div>
+            </div>
+            <div>
+              <label class="co-label">Captura del pago <span style="color:#64748b;font-weight:400;">(Opcional)</span></label>
+              <label style="display:flex;align-items:center;gap:8px;padding:11px 14px;
+                            border:1px solid rgba(255,255,255,.1);border-radius:10px;
+                            cursor:pointer;color:#94a3b8;font-size:13px;
+                            background:rgba(255,255,255,.03);" id="lblVoucherYape">
+                <i class="fa-solid fa-image" style="color:#6366f1;"></i>
+                <span id="lblVoucherYapeTxt">Subir imagen</span>
+                <input type="file" id="voucherInput" accept="image/*" style="display:none;"
+                       onchange="previewVoucher(this,'lblVoucherYapeTxt')">
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── TRANSFERENCIA ── -->
+        <div id="secTransferencia" style="display:none;">
+          <!-- Datos bancarios -->
+          <div style="border-radius:14px;overflow:hidden;margin-bottom:16px;">
+            <div style="background:linear-gradient(135deg,#1e3a5f,#1e293b);
+                        padding:18px 22px;">
+              <div style="font-size:11px;color:#60a5fa;text-transform:uppercase;
+                          letter-spacing:1.5px;font-weight:700;margin-bottom:12px;
+                          display:flex;align-items:center;gap:6px;">
+                <i class="fa-solid fa-building-columns"></i> Datos bancarios
+              </div>
+              <div style="display:grid;grid-template-columns:auto 1fr;gap:6px 16px;font-size:13px;">
+                <span style="color:#64748b;font-weight:600;">Banco</span>
+                <span id="transBancoDisplay" style="color:#e2e8f0;font-weight:700;"></span>
+                <span style="color:#64748b;font-weight:600;">Cuenta</span>
+                <span id="transCuentaDisplay" style="color:#e2e8f0;font-family:monospace;"></span>
+                <span style="color:#64748b;font-weight:600;">CCI</span>
+                <span id="transCciDisplay" style="color:#e2e8f0;font-family:monospace;font-size:12px;"></span>
+              </div>
+            </div>
+            <div style="background:rgba(255,255,255,.04);border-top:1px solid rgba(255,255,255,.08);
+                        padding:10px 22px;font-size:11px;color:#64748b;
+                        display:flex;align-items:center;gap:6px;">
+              <i class="fa-solid fa-circle-info" style="color:#6366f1;"></i>
+              Transfiere el total exacto e ingresa el código de operación
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div>
+              <label class="co-label">Código de Operación <span style="color:#ef4444;">*</span></label>
+              <input type="text" id="payOperacionTrans" class="co-input"
+                     placeholder="Ej: 89945399" maxlength="20"
+                     oninput="this.value=this.value.replace(/[^0-9a-zA-Z]/g,'')">
+              <div id="errOperacionTrans" class="co-err">Código inválido o ya registrado.</div>
+            </div>
+            <div>
+              <label class="co-label">Comprobante <span style="color:#64748b;font-weight:400;">(Opcional)</span></label>
+              <label style="display:flex;align-items:center;gap:8px;padding:11px 14px;
+                            border:1px solid rgba(255,255,255,.1);border-radius:10px;
+                            cursor:pointer;color:#94a3b8;font-size:13px;
+                            background:rgba(255,255,255,.03);">
+                <i class="fa-solid fa-image" style="color:#6366f1;"></i>
+                <span id="lblVoucherTransTxt">Subir imagen</span>
+                <input type="file" id="voucherInputTrans" accept="image/*" style="display:none;"
+                       onchange="previewVoucher(this,'lblVoucherTransTxt')">
+              </label>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div><!-- /izquierda -->
+
+    <!-- ═══ DERECHA: RESUMEN ═══ -->
+    <div style="position:sticky;top:76px;">
+      <!-- Tarjeta resumen -->
+      <div class="co-card" style="margin-bottom:12px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+          <span style="font-size:14px;font-weight:800;color:#e2e8f0;">Tu Pedido</span>
+          <span id="resumenBadge"
+                style="background:linear-gradient(135deg,#2563eb,#7c3aed);color:white;
+                       border-radius:20px;padding:3px 12px;font-size:11px;font-weight:700;">
+            0 items
+          </span>
+        </div>
+        <div id="payResumen"></div>
+        <div style="height:1px;background:rgba(255,255,255,.07);margin:14px 0;"></div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;color:#64748b;margin-bottom:6px;">
+          <span>Subtotal</span><span id="resSubtotal" style="color:#cbd5e1;">S/ 0.00</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;color:#64748b;margin-bottom:14px;">
+          <span>Envío</span>
+          <span style="color:#34d399;font-weight:700;">✓ Gratis</span>
+        </div>
+        <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+                    border-radius:12px;padding:14px;display:flex;
+                    align-items:center;justify-content:space-between;margin-bottom:18px;">
+          <span style="font-size:13px;color:#94a3b8;font-weight:600;">Total a Pagar</span>
+          <span id="resTotal" style="font-size:22px;font-weight:900;
+                background:linear-gradient(135deg,#60a5fa,#a78bfa);
+                -webkit-background-clip:text;-webkit-text-fill-color:transparent;">S/ 0.00</span>
+        </div>
+        <button onclick="confirmarPedido()" id="btnConfirmar" type="button"
+                style="width:100%;padding:15px;
+                       background:linear-gradient(135deg,#2563eb,#7c3aed);
+                       border:none;border-radius:12px;color:white;font-size:15px;
+                       font-weight:800;cursor:pointer;display:flex;align-items:center;
+                       justify-content:center;gap:9px;transition:.2s;
+                       box-shadow:0 8px 24px rgba(37,99,235,.35);"
+                onmouseover="this.style.opacity='.88'"
+                onmouseout="this.style.opacity='1'">
+          <i class="fa-solid fa-circle-check"></i> Confirmar Pedido
+        </button>
+        <div style="text-align:center;margin-top:10px;font-size:11px;color:#475569;
+                    display:flex;align-items:center;justify-content:center;gap:5px;">
+          <i class="fa-solid fa-shield-halved" style="color:#6366f1;"></i>
+          Pago seguro y protegido
+        </div>
+      </div>
+      <!-- Aviso -->
+      <div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);
+                  border-radius:12px;padding:12px 14px;font-size:12px;color:#fbbf24;
+                  display:flex;gap:8px;align-items:flex-start;">
+        <i class="fa-solid fa-clock" style="margin-top:1px;flex-shrink:0;"></i>
+        <span>Tu pedido quedará en revisión hasta que validemos tu comprobante de pago.</span>
+      </div>
+    </div>
+
+  </div><!-- /grid -->
+
+  <!-- ── OVERLAY PROCESANDO ── -->
+  <div id="stepProcesando"
+       style="display:none;position:fixed;inset:0;z-index:3000;
+              background:rgba(5,8,20,.92);backdrop-filter:blur(8px);
+              flex-direction:column;align-items:center;justify-content:center;text-align:center;">
+    <div class="pay-spinner"></div>
+    <h3 style="margin-top:24px;font-size:18px;font-weight:800;color:#e2e8f0;">Procesando pedido...</h3>
+    <p style="color:#64748b;font-size:13px;margin-top:8px;" id="procesandoMsg">Verificando información</p>
+  </div>
+
+  <!-- ── OVERLAY ÉXITO ── -->
+  <div id="stepExito"
+       style="display:none;position:fixed;inset:0;z-index:3000;
+              background:rgba(5,8,20,.92);backdrop-filter:blur(8px);
+              flex-direction:column;align-items:center;justify-content:center;
+              padding:24px;text-align:center;">
+    <div style="background:#1e293b;border:1px solid rgba(255,255,255,.1);
+                border-radius:24px;padding:36px 32px;max-width:420px;width:100%;
+                box-shadow:0 20px 60px rgba(0,0,0,.6);">
+      <div style="width:72px;height:72px;border-radius:50%;margin:0 auto 20px;
+                  background:linear-gradient(135deg,#16a34a,#22c55e);
+                  display:flex;align-items:center;justify-content:center;
+                  box-shadow:0 8px 24px rgba(34,197,94,.3);">
+        <i class="fa-solid fa-check" style="color:white;font-size:28px;"></i>
+      </div>
+      <h2 style="font-size:22px;font-weight:900;color:#e2e8f0;margin-bottom:8px;">¡Pedido Registrado!</h2>
+      <p style="color:#64748b;font-size:13px;margin-bottom:20px;">
+        Revisaremos tu comprobante y aprobaremos tu pedido pronto.
+      </p>
+      <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+                  border-radius:14px;padding:16px;text-align:left;margin-bottom:18px;">
+        <div style="font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:1.5px;
+                    font-weight:700;margin-bottom:6px;">Número de Pedido</div>
+        <div id="exitoNumPedido"
+             style="font-size:24px;font-weight:900;letter-spacing:3px;
+                    background:linear-gradient(135deg,#60a5fa,#a78bfa);
+                    -webkit-background-clip:text;-webkit-text-fill-color:transparent;"></div>
+        <div style="height:1px;background:rgba(255,255,255,.06);margin:12px 0;"></div>
+        <div style="font-size:13px;color:#94a3b8;">
+          Total pagado: <strong id="exitoTotal" style="color:#34d399;"></strong>
+        </div>
+        <div id="exitoAprobacion" style="margin-top:10px;"></div>
+      </div>
+      <button onclick="cerrarExito()" type="button"
+              style="width:100%;padding:14px;background:linear-gradient(135deg,#2563eb,#7c3aed);
+                     border:none;border-radius:12px;color:white;font-size:15px;
+                     font-weight:700;cursor:pointer;display:flex;align-items:center;
+                     justify-content:center;gap:8px;">
+        <i class="fa-solid fa-check"></i> Entendido, gracias
+      </button>
+    </div>
+  </div>
+
+</div><!-- /paymentModal -->
+
+<!-- ══════════════════════════
+     MODAL QR YAPE
+══════════════════════════ -->
+<div id="qrModal"
+     style="display:none;position:fixed;inset:0;z-index:4000;
+            background:rgba(5,8,20,.88);backdrop-filter:blur(12px);
+            align-items:center;justify-content:center;">
+  <div style="background:#1e293b;border:1px solid rgba(255,255,255,.1);
+              border-radius:24px;padding:32px 28px;max-width:300px;width:90%;
+              position:relative;text-align:center;
+              box-shadow:0 20px 60px rgba(0,0,0,.6);animation:fadeUp .25s ease;">
+    <button onclick="cerrarQR()" type="button"
+            style="position:absolute;top:14px;right:14px;
+                   background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);
+                   border-radius:50%;width:32px;height:32px;cursor:pointer;
+                   color:#94a3b8;font-size:14px;display:flex;align-items:center;justify-content:center;">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+    <div style="width:44px;height:44px;border-radius:12px;margin:0 auto 14px;
+                background:linear-gradient(135deg,#4f1dab,#7c3aed);
+                display:flex;align-items:center;justify-content:center;">
+      <i class="fa-solid fa-qrcode" style="color:white;font-size:20px;"></i>
+    </div>
+    <h3 style="font-size:17px;font-weight:900;color:#e2e8f0;margin-bottom:4px;">Escanea para Yapear</h3>
+    <p style="font-size:12px;color:#64748b;margin-bottom:18px;">Abre Yape y escanea este código QR</p>
+    <!-- QR real de Yape -->
+    <div style="background:#0f172a;border-radius:16px;padding:14px;margin-bottom:16px;
+                border:1px solid rgba(255,255,255,.08);position:relative;">
+      <img id="qrCodeImg" src="" alt="QR Yape"
+           style="width:200px;height:200px;border-radius:10px;display:block;margin:0 auto;
+                  object-fit:contain;">
+      <!-- Overlay si no hay QR subido -->
+      <div id="qrPlaceholder"
+           style="display:none;position:absolute;inset:14px;border-radius:10px;
+                  background:rgba(15,23,42,.92);flex-direction:column;
+                  align-items:center;justify-content:center;gap:8px;">
+        <i class="fa-solid fa-qrcode" style="font-size:32px;color:#475569;"></i>
+        <span style="font-size:11px;color:#475569;text-align:center;padding:0 12px;">
+          Sube tu QR de Yape en<br><code style="color:#6366f1;font-size:10px;">static/imagenes/yape-qr.png</code>
+        </span>
+      </div>
+    </div>
+    <div style="font-size:11px;color:#64748b;margin-bottom:4px;">Número de Yape</div>
+    <div id="qrPhoneDisplay"
+         style="font-size:22px;font-weight:900;letter-spacing:4px;margin-bottom:14px;
+                background:linear-gradient(135deg,#a78bfa,#ec4899);
+                -webkit-background-clip:text;-webkit-text-fill-color:transparent;"></div>
+    <button onclick="copiarNumYape()" type="button" id="btnCopiarYape"
+            style="width:100%;background:rgba(124,58,237,.15);
+                   border:1px solid rgba(124,58,237,.35);border-radius:10px;
+                   padding:11px 20px;font-size:13px;font-weight:700;cursor:pointer;
+                   color:#c4b5fd;display:flex;align-items:center;justify-content:center;gap:8px;
+                   transition:.2s;" onmouseover="this.style.background='rgba(124,58,237,.25)'"
+            onmouseout="this.style.background='rgba(124,58,237,.15)'">
+      <i class="fa-solid fa-copy"></i> Copiar Número
+    </button>
+  </div>
+</div>
+
+<style>
+/* ═══ CHECKOUT DARK ═══ */
+.co-card {
+  background:#1e293b; border-radius:16px; padding:22px;
+  border:1px solid rgba(255,255,255,.07);
+  box-shadow:0 4px 20px rgba(0,0,0,.25);
+}
+.co-step-hdr {
+  display:flex; align-items:center; gap:12px; margin-bottom:20px;
+}
+.co-num {
+  width:34px; height:34px; border-radius:10px; flex-shrink:0;
+  background:linear-gradient(135deg,#2563eb,#7c3aed);
+  color:white; font-weight:900; font-size:14px;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 4px 12px rgba(37,99,235,.4);
+}
+.co-label {
+  font-size:12px; font-weight:600; color:#94a3b8;
+  margin-bottom:7px; display:block;
+}
+.co-input {
+  width:100%; padding:11px 14px;
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:10px; font-size:14px; color:#e2e8f0;
+  outline:none; transition:.2s; box-sizing:border-box;
+}
+.co-input:focus {
+  border-color:rgba(99,102,241,.6);
+  box-shadow:0 0 0 3px rgba(99,102,241,.15);
+  background:rgba(99,102,241,.05);
+}
+.co-input::placeholder { color:#475569; }
+.co-err { color:#f87171; font-size:12px; margin-top:5px; display:none; }
+.co-btn-primary {
+  padding:11px 18px;
+  background:linear-gradient(135deg,#2563eb,#7c3aed);
+  border:none; border-radius:10px; color:white;
+  font-size:13px; font-weight:700; cursor:pointer;
+  white-space:nowrap; transition:.2s;
+}
+.co-btn-primary:hover { opacity:.85; }
+/* Delivery options */
+.co-delivery-opt {
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:12px; padding:14px;
+  cursor:pointer; transition:.2s; display:block;
+}
+.co-delivery-opt input[type=radio] { display:none; }
+.co-delivery-opt.active {
+  background:rgba(37,99,235,.1);
+  border-color:rgba(37,99,235,.5);
+  box-shadow:0 0 0 1px rgba(37,99,235,.3);
+}
+.co-delivery-opt:hover:not(.active) { background:rgba(255,255,255,.06); }
+/* Method tabs */
+.co-method-tab {
+  padding:13px 16px;
+  background:rgba(255,255,255,.03);
+  cursor:pointer; transition:.2s;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  font-size:14px; font-weight:700; color:#64748b;
+}
+.co-method-tab input[type=radio] { display:none; }
+.co-method-tab.active {
+  background:rgba(99,102,241,.15); color:#a5b4fc;
+}
+.co-method-tab:hover:not(.active) { background:rgba(255,255,255,.06); color:#94a3b8; }
+/* DNI dropdown */
+.dni-item {
+  padding:10px 14px; cursor:pointer; font-size:13px; color:#cbd5e1;
+  display:flex; flex-direction:column; gap:2px;
+  border-bottom:1px solid rgba(255,255,255,.05); transition:.15s;
+}
+.dni-item:last-child { border-bottom:none; }
+.dni-item:hover { background:rgba(99,102,241,.12); }
+.dni-item-num { font-weight:700; color:#a5b4fc; }
+.dni-item-name { font-size:11px; color:#64748b; }
+/* Spinner */
+.pay-spinner {
+  width:52px; height:52px;
+  border:4px solid rgba(99,102,241,.15);
+  border-top-color:#6366f1;
+  border-radius:50%;
+  animation:spin .7s linear infinite;
+}
+@keyframes spin { to { transform:rotate(360deg); } }
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(16px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+/* Responsive */
+@media(max-width:800px){
+  #checkoutGrid { grid-template-columns:1fr !important; }
+  #checkoutGrid > div:last-child { position:static !important; }
+}
+</style>
+
+
+<!-- SWIPER JS -->
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+<!-- LEAFLET (mapa picker) -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- MODAL MAPA PICKER -->
+<div id="mapaPickerOverlay" style="display:none;position:fixed;inset:0;z-index:99999;
+     background:rgba(0,0,0,.75);backdrop-filter:blur(4px);
+     align-items:center;justify-content:center;">
+  <div style="background:#1e293b;border-radius:20px;width:680px;max-width:96vw;
+              border:1px solid rgba(255,255,255,.1);box-shadow:0 30px 80px rgba(0,0,0,.6);
+              overflow:hidden;display:flex;flex-direction:column;max-height:90vh;">
+    <!-- Header -->
+    <div style="padding:16px 20px;border-bottom:1px solid rgba(255,255,255,.07);
+                display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="font-size:16px;font-weight:800;color:white;display:flex;align-items:center;gap:8px;">
+          <i class="fa-solid fa-map-location-dot" style="color:#34d399;"></i>
+          Seleccionar Ubicación
+        </div>
+        <div style="font-size:11px;color:#64748b;margin-top:2px;">Arrastra el pin o toca el mapa para elegir tu dirección</div>
+      </div>
+      <button onclick="cerrarMapaPicker()"
+              style="background:none;border:none;color:#64748b;font-size:20px;cursor:pointer;padding:4px;">&times;</button>
+    </div>
+    <!-- Mapa -->
+    <div style="position:relative;flex:1;min-height:360px;">
+      <div id="leafletMap" style="width:100%;height:400px;"></div>
+      <!-- Pin central fijo estilo InDrive -->
+      <div id="mapCenterPin" style="position:absolute;top:50%;left:50%;
+           transform:translate(-50%,-100%);pointer-events:none;z-index:1000;
+           display:flex;flex-direction:column;align-items:center;">
+        <div style="width:36px;height:36px;border-radius:50% 50% 50% 0;
+                    background:linear-gradient(135deg,#6366f1,#4f46e5);
+                    transform:rotate(-45deg);box-shadow:0 4px 14px rgba(99,102,241,.5);
+                    display:flex;align-items:center;justify-content:center;">
+          <i class="fa-solid fa-store" style="color:white;font-size:14px;transform:rotate(45deg);"></i>
+        </div>
+        <div style="width:2px;height:10px;background:#6366f1;margin-top:-1px;"></div>
+      </div>
+    </div>
+    <!-- Dirección detectada -->
+    <div style="padding:14px 20px;border-top:1px solid rgba(255,255,255,.07);background:#0f172a;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+        <i class="fa-solid fa-map-pin" style="color:#34d399;flex-shrink:0;"></i>
+        <span id="mapaPickerAddr" style="font-size:13px;color:#94a3b8;font-style:italic;">
+          Mueve el mapa para obtener la dirección...
+        </span>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <button onclick="cerrarMapaPicker()"
+                style="padding:10px 20px;border-radius:10px;border:1px solid rgba(255,255,255,.1);
+                       background:rgba(255,255,255,.05);color:#94a3b8;font-size:13px;
+                       font-weight:700;cursor:pointer;">Cancelar</button>
+        <button onclick="confirmarMapaPicker()"
+                style="padding:10px 22px;border-radius:10px;border:none;
+                       background:linear-gradient(135deg,#6366f1,#4f46e5);color:white;
+                       font-size:13px;font-weight:800;cursor:pointer;
+                       display:flex;align-items:center;gap:7px;">
+          <i class="fa-solid fa-check"></i> Confirmar ubicación
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Mapa picker Leaflet ──
+let _leafletMap = null, _mapaLat = null, _mapaLng = null, _mapaAddr = '';
+let _mapaDebounce = null;
+
+function abrirMapaPicker() {
+    const overlay = document.getElementById('mapaPickerOverlay');
+    overlay.style.display = 'flex';
+
+    setTimeout(() => {
+        if (!_leafletMap) {
+            // Chiclayo por defecto
+            _leafletMap = L.map('leafletMap', { zoomControl: true, attributionControl: false })
+                          .setView([-6.7714, -79.8409], 15);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(_leafletMap);
+
+            _leafletMap.on('movestart', () => {
+                document.getElementById('mapaPickerAddr').textContent = 'Buscando dirección...';
+                document.getElementById('mapaPickerAddr').style.color = '#64748b';
+            });
+            _leafletMap.on('moveend', () => {
+                clearTimeout(_mapaDebounce);
+                _mapaDebounce = setTimeout(geocodearCentro, 500);
+            });
+            geocodearCentro();
+        }
+        _leafletMap.invalidateSize();
+    }, 120);
+}
+
+function geocodearCentro() {
+    const c = _leafletMap.getCenter();
+    _mapaLat = c.lat; _mapaLng = c.lng;
+    fetch(`https://nominatim.openstreetmap.org/reverse?lat=${c.lat}&lon=${c.lng}&format=json&addressdetails=1`)
+        .then(r => r.json())
+        .then(d => {
+            _mapaAddr = d.display_name || `${c.lat.toFixed(5)}, ${c.lng.toFixed(5)}`;
+            const el = document.getElementById('mapaPickerAddr');
+            el.textContent = _mapaAddr;
+            el.style.color = '#e2e8f0';
+            el.style.fontStyle = 'normal';
+        }).catch(() => {
+            _mapaAddr = `${c.lat.toFixed(5)}, ${c.lng.toFixed(5)}`;
+            document.getElementById('mapaPickerAddr').textContent = _mapaAddr;
+        });
+}
+
+function confirmarMapaPicker() {
+    if (!_mapaAddr) return;
+    const input = document.getElementById('payDireccion');
+    input.value = _mapaAddr;
+    // Mostrar preview
+    document.getElementById('dirPreviewTxt').textContent = _mapaAddr;
+    document.getElementById('dirMapsLink').href =
+        `https://www.google.com/maps?q=${_mapaLat},${_mapaLng}`;
+    document.getElementById('dirPreview').style.display = '';
+    cerrarMapaPicker();
+}
+
+function cerrarMapaPicker() {
+    document.getElementById('mapaPickerOverlay').style.display = 'none';
+}
+document.getElementById('mapaPickerOverlay').addEventListener('click', e => {
+    if (e.target === e.currentTarget) cerrarMapaPicker();
+});
+</script>
+
+<!-- JS CATÁLOGO -->
+<script th:src="@{/js/catalogo.js}"></script>
+
+</body>
+</html>

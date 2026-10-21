@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slider & Logo - Inventario</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
+    <style>
+        *{ margin:0; padding:0; box-sizing:border-box; }
+        body{
+            background:
+                radial-gradient(circle at top left,#1e3a8a 0%,transparent 25%),
+                radial-gradient(circle at bottom right,#7c3aed 0%,transparent 25%),
+                #0f172a;
+            font-family:'Segoe UI',sans-serif;
+            color:white;
+            min-height:100vh;
+        }
+        .main{ margin-left:270px; padding:30px; }
+        .topbar{ display:flex; justify-content:space-between; align-items:center; margin-bottom:30px; }
+        .topbar h2{ font-size:34px; font-weight:800;
+            text-shadow:0 0 10px rgba(59,130,246,.7),0 0 20px rgba(124,58,237,.5); }
+        .section-card{
+            background:rgba(255,255,255,.06); backdrop-filter:blur(20px);
+            border-radius:24px; padding:28px; border:1px solid rgba(255,255,255,.08);
+            box-shadow:0 15px 40px rgba(0,0,0,.25); margin-bottom:30px;
+        }
+        .section-title{
+            font-size:20px; font-weight:700; margin-bottom:20px;
+            display:flex; align-items:center; gap:10px;
+        }
+        .section-title .badge-count{
+            background:linear-gradient(135deg,#2563eb,#7c3aed);
+            padding:4px 12px; border-radius:20px; font-size:13px;
+        }
+        .img-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:16px; margin-bottom:20px; }
+        .img-item{
+            background:rgba(255,255,255,.04); border-radius:16px;
+            border:1px solid rgba(255,255,255,.08); overflow:hidden; position:relative;
+        }
+        .img-item img{ width:100%; height:160px; object-fit:cover; display:block; }
+        .img-item .img-info{ padding:10px 12px; }
+        .img-item .img-info p{ font-size:13px; color:#94a3b8; margin:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .img-item .img-actions{ display:flex; gap:6px; margin-top:8px; }
+        .badge-activo{ background:#dcfce7; color:#166534; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:bold; }
+        .badge-inactivo{ background:#fee2e2; color:#991b1b; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:bold; }
+        .btn-del{ background:#ef4444; border:none; color:white; padding:6px 12px; border-radius:10px; font-size:12px; cursor:pointer; transition:.3s; }
+        .btn-del:hover{ background:#dc2626; transform:translateY(-2px); }
+        .btn-toggle{ background:#f59e0b; border:none; color:white; padding:6px 12px; border-radius:10px; font-size:12px; cursor:pointer; transition:.3s; }
+        .btn-toggle:hover{ background:#d97706; transform:translateY(-2px); }
+        .upload-zone{
+            border:2px dashed rgba(99,130,246,.4); border-radius:16px;
+            padding:24px; background:rgba(255,255,255,.02); transition:.3s;
+        }
+        .upload-zone:hover{ border-color:rgba(99,130,246,.7); background:rgba(99,130,246,.05); }
+        .form-label{ color:#cbd5e1; font-size:14px; font-weight:600; margin-bottom:8px; display:block; }
+        .form-control, .form-select{
+            background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.1);
+            color:white; border-radius:12px; padding:12px;
+        }
+        .form-control:focus, .form-select:focus{
+            background:rgba(255,255,255,.12); border-color:#3b82f6;
+            color:white; box-shadow:0 0 0 3px rgba(59,130,246,.2);
+        }
+        .form-control::placeholder{ color:#64748b; }
+        .btn-save{
+            border:none; padding:13px 24px; border-radius:14px;
+            background:linear-gradient(135deg,#2563eb,#7c3aed);
+            color:white; font-weight:700; cursor:pointer; transition:.35s;
+        }
+        .btn-save:hover{ transform:translateY(-3px); box-shadow:0 12px 30px rgba(99,130,246,.35); }
+        .max-info{ background:rgba(99,130,246,.1); border:1px solid rgba(99,130,246,.2);
+            border-radius:12px; padding:10px 16px; font-size:13px; color:#93c5fd; margin-bottom:16px; }
+        .empty-state{ text-align:center; padding:40px; color:#64748b; }
+        .empty-state i{ font-size:48px; margin-bottom:12px; display:block; }
+        /* RESPONSIVE */
+        @media(max-width:768px){
+            .topbar{ margin-bottom:18px; }
+            .img-grid{ grid-template-columns:1fr 1fr; gap:12px; }
+            .btn-save{ width:100%; }
+        }
+        @media(max-width:480px){
+            .img-grid{ grid-template-columns:1fr; }
+            .img-item img{ height:130px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<th:block th:replace="~{fragments/sidebar :: sidebar}"></th:block>
+
+<!-- MAIN -->
+<div class="main">
+
+    <div class="topbar">
+        <h2><i class="fa-solid fa-images"></i> Slider &amp; Logo</h2>
+    </div>
+
+    <!-- ALERTAS -->
+    <div th:if="${param.successSlider}" class="alert alert-success rounded-3 mb-3">
+        <i class="fa-solid fa-check-circle"></i> Slider actualizado correctamente.
+    </div>
+    <div th:if="${param.errorSlider != null and param.errorSlider[0] == 'max'}" class="alert alert-danger rounded-3 mb-3">
+        <i class="fa-solid fa-triangle-exclamation"></i> Límite de 5 imágenes de slider alcanzado. Elimina una antes de agregar otra.
+    </div>
+    <div th:if="${param.errorSlider != null and param.errorSlider[0] == 'tipoInvalido'}" class="alert alert-danger rounded-3 mb-3">
+        <i class="fa-solid fa-triangle-exclamation"></i> Archivo no permitido para slider. Solo se aceptan imágenes (JPG, PNG, GIF, WEBP, SVG).
+    </div>
+
+    <div th:if="${param.successLogo}" class="alert alert-success rounded-3 mb-3">
+        <i class="fa-solid fa-check-circle"></i> Logo actualizado correctamente.
+    </div>
+    <div th:if="${param.errorLogo != null and param.errorLogo[0] == 'max'}" class="alert alert-danger rounded-3 mb-3">
+        <i class="fa-solid fa-triangle-exclamation"></i> Límite de 5 logos alcanzado. Elimina uno antes de agregar otro.
+    </div>
+    <div th:if="${param.errorLogo != null and param.errorLogo[0] == 'tipoInvalido'}" class="alert alert-danger rounded-3 mb-3">
+        <i class="fa-solid fa-triangle-exclamation"></i> Archivo no permitido para logo. Solo se aceptan imágenes (JPG, PNG, GIF, WEBP, SVG).
+    </div>
+
+    <div class="row g-4">
+
+        <!-- ========================= SLIDER ========================= -->
+        <div class="col-lg-8">
+            <div class="section-card">
+                <div class="section-title">
+                    <i class="fa-solid fa-film" style="color:#3b82f6;"></i>
+                    Imágenes del Slider
+                    <span class="badge-count" th:text="${#lists.size(sliders)} + ' / ' + ${maxSlider}"></span>
+                </div>
+
+                <div class="max-info">
+                    <i class="fa-solid fa-info-circle"></i>
+                    Máximo <strong th:text="${maxSlider}"></strong> imágenes para el slider del catálogo.
+                    Las imágenes activas se muestran en el carrusel superior del catálogo.
+                </div>
+
+                <!-- GRID DE SLIDERS -->
+                <div class="img-grid" th:if="${!#lists.isEmpty(sliders)}">
+                    <div class="img-item" th:each="s : ${sliders}">
+                        <img th:src="${s.ruta}" alt="Slide">
+                        <div class="img-info">
+                            <p th:text="${s.titulo != null and s.titulo != '' ? s.titulo : 'Sin título'}"></p>
+                            <p style="font-size:11px;" th:text="${s.subtitulo}"></p>
+                            <div class="img-actions">
+                                <span th:if="${s.activo}" class="badge-activo">Activo</span>
+                                <span th:unless="${s.activo}" class="badge-inactivo">Inactivo</span>
+                                <a th:href="@{/slider-logo/slider/toggle/{id}(id=${s.id})}" class="btn-toggle">
+                                    <i class="fa-solid fa-toggle-on"></i>
+                                </a>
+                                <button class="btn-del" th:attr="onclick=|eliminarSlider(${s.id})|">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="empty-state" th:if="${#lists.isEmpty(sliders)}">
+                    <i class="fa-solid fa-image"></i>
+                    <p>No hay imágenes en el slider aún.</p>
+                </div>
+
+                <!-- FORMULARIO SUBIR SLIDER -->
+                <div class="upload-zone" th:if="${#lists.size(sliders) < maxSlider}">
+                    <h6 class="mb-3" style="color:#93c5fd;"><i class="fa-solid fa-upload"></i> Agregar imagen al slider</h6>
+                    <form th:action="@{/slider-logo/slider/guardar}" method="post" enctype="multipart/form-data">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Título (opcional)</label>
+                                <input type="text" class="form-control" name="titulo" placeholder="Ej: Setup Gamer">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Subtítulo (opcional)</label>
+                                <input type="text" class="form-control" name="subtitulo" placeholder="Ej: Tecnología premium">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Imagen del slide *</label>
+                                <input type="file" class="form-control" name="archivo" accept="image/*" required>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn-save">
+                                    <i class="fa-solid fa-floppy-disk"></i> Guardar Slide
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <div th:if="${#lists.size(sliders) >= maxSlider}" class="alert alert-warning rounded-3 mt-3">
+                    <i class="fa-solid fa-lock"></i> Límite de <strong th:text="${maxSlider}"></strong> slides alcanzado. Elimina uno para agregar otro.
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================= LOGO ========================= -->
+        <div class="col-lg-4">
+            <div class="section-card">
+                <div class="section-title">
+                    <i class="fa-solid fa-star" style="color:#f59e0b;"></i>
+                    Logos del Sidebar
+                    <span class="badge-count" th:text="${#lists.size(logos)} + ' / ' + ${maxLogo}"></span>
+                </div>
+
+                <div class="max-info">
+                    <i class="fa-solid fa-info-circle"></i>
+                    Máximo <strong th:text="${maxLogo}"></strong> logos.
+                    El <strong>primer logo activo</strong> se muestra en el sidebar del panel.
+                </div>
+
+                <!-- GRID LOGOS -->
+                <div th:if="${!#lists.isEmpty(logos)}">
+                    <div class="img-item mb-3" th:each="l : ${logos}">
+                        <img th:src="${l.ruta}" alt="Logo" style="height:100px;object-fit:contain;background:#1e293b;">
+                        <div class="img-info">
+                            <p th:text="${l.nombre != null and l.nombre != '' ? l.nombre : 'Sin nombre'}"></p>
+                            <div class="img-actions">
+                                <span th:if="${l.activo}" class="badge-activo">Activo</span>
+                                <span th:unless="${l.activo}" class="badge-inactivo">Inactivo</span>
+                                <a th:href="@{/slider-logo/logo/toggle/{id}(id=${l.id})}" class="btn-toggle">
+                                    <i class="fa-solid fa-toggle-on"></i>
+                                </a>
+                                <button class="btn-del" th:attr="onclick=|eliminarLogo(${l.id})|">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="empty-state" th:if="${#lists.isEmpty(logos)}">
+                    <i class="fa-regular fa-image"></i>
+                    <p>No hay logos aún.</p>
+                </div>
+
+                <!-- FORMULARIO LOGO -->
+                <div class="upload-zone mt-3" th:if="${#lists.size(logos) < maxLogo}">
+                    <h6 class="mb-3" style="color:#fbbf24;"><i class="fa-solid fa-upload"></i> Agregar logo</h6>
+                    <form th:action="@{/slider-logo/logo/guardar}" method="post" enctype="multipart/form-data">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label">Nombre (opcional)</label>
+                                <input type="text" class="form-control" name="nombre" placeholder="Mi empresa">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Imagen del logo *</label>
+                                <input type="file" class="form-control" name="archivo" accept="image/*" required>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn-save">
+                                    <i class="fa-solid fa-floppy-disk"></i> Guardar Logo
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <div th:if="${#lists.size(logos) >= maxLogo}" class="alert alert-warning rounded-3 mt-3">
+                    <i class="fa-solid fa-lock"></i> Límite de <strong th:text="${maxLogo}"></strong> logos alcanzado.
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function eliminarSlider(id) {
+    Swal.fire({
+        title:'¿Eliminar slide?', icon:'warning',
+        showCancelButton:true, confirmButtonColor:'#ef4444',
+        cancelButtonColor:'#3b82f6', confirmButtonText:'Sí, eliminar', cancelButtonText:'Cancelar'
+    }).then(r => { if(r.isConfirmed) window.location='/slider-logo/slider/eliminar/'+id; });
+}
+function eliminarLogo(id) {
+    Swal.fire({
+        title:'¿Eliminar logo?', icon:'warning',
+        showCancelButton:true, confirmButtonColor:'#ef4444',
+        cancelButtonColor:'#3b82f6', confirmButtonText:'Sí, eliminar', cancelButtonText:'Cancelar'
+    }).then(r => { if(r.isConfirmed) window.location='/slider-logo/logo/eliminar/'+id; });
+}
+</script>
+</body>
+</html>
