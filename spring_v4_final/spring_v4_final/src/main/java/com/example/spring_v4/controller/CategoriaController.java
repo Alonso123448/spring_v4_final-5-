@@ -20,9 +20,6 @@ public class CategoriaController {
         this.categoriaRepository = categoriaRepository;
     }
 
-    // =========================
-    // LISTAR
-    // =========================
 
     @GetMapping({"", "/"})
     public String listar(Model model) {
@@ -34,9 +31,6 @@ public class CategoriaController {
         return "Categorias/categorias";
     }
 
-    // =========================
-    // GUARDAR / EDITAR
-    // =========================
 
     @PostMapping("/guardar")
     public String guardar(@ModelAttribute Categoria categoria, RedirectAttributes ra) {
@@ -50,7 +44,7 @@ public class CategoriaController {
         String nombreTrim = categoria.getNombre().trim();
         boolean editando = categoria.getId() != null;
 
-        // Validar unicidad de nombre
+    
         if (!editando) {
             if (categoriaRepository.existsByNombreIgnoreCase(nombreTrim)) {
                 ra.addFlashAttribute("error",
@@ -90,9 +84,6 @@ public class CategoriaController {
         }
     }
 
-    // =========================
-    // ELIMINAR
-    // =========================
 
     @PostMapping("/eliminar/{id}")
     public String eliminar(@PathVariable Integer id) {
@@ -111,9 +102,6 @@ public class CategoriaController {
         }
     }
 
-    // =========================
-    // BUSCAR
-    // =========================
 
     @GetMapping("/buscar/{id}")
     @ResponseBody
