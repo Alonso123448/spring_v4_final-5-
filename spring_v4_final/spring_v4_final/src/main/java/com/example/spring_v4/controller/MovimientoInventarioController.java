@@ -71,7 +71,7 @@ public class MovimientoInventarioController {
         if (tipo.equals("ENTRADA")) {
             producto.setStock(stockActual + cantidad);
 
-        } else { // SALIDA
+        } else { 
             if (cantidad > stockActual) {
                 ra.addFlashAttribute("error",
                         "Stock insuficiente. Stock actual de '" + producto.getNombre()
