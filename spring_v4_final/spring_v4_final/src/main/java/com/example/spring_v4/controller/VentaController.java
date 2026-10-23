@@ -45,9 +45,7 @@ public class VentaController {
         this.clienteRepo  = clienteRepo;
     }
 
-    // =====================================
-    // LISTADO
-    // =====================================
+ 
     @GetMapping({"", "/"})
     public String listar(Model model) {
         model.addAttribute("ventas", ventaRepo.findAll());
@@ -56,9 +54,7 @@ public class VentaController {
         return "ventas";
     }
 
-    // =====================================
-    // GUARDAR NUEVA VENTA
-    // =====================================
+    
     @PostMapping("/guardar")
     @Transactional
     public String guardar(
@@ -77,7 +73,6 @@ public class VentaController {
             Authentication auth,
             RedirectAttributes ra) {
 
-        // ── Validar stock disponible (backend) ──────────────────────────────
         for (int i = 0; i < productosId.size(); i++) {
             Producto prod = productoRepo.findById(productosId.get(i)).orElse(null);
             if (prod == null) {
@@ -93,14 +88,12 @@ public class VentaController {
             }
         }
 
-        // Número de documento — sincronizado para evitar duplicados bajo carga concurrente
         String numDoc;
         synchronized (VentaController.class) {
             long count = ventaRepo.countBySerie(serie) + 1;
             numDoc = serie.contains("N001") ? String.format("N001-%08d", count) : String.format("DOC-%08d", count);
         }
 
-        // Calcular total y armar detalles
         BigDecimal total = BigDecimal.ZERO;
         List<DetalleVenta> detalles = new ArrayList<>();
         for (int i = 0; i < productosNombre.size(); i++) {
@@ -126,10 +119,8 @@ public class VentaController {
         v.setEsCredito(esCredito);
         v.setEstado("COMPLETADA");
 
-        // Crédito
         BigDecimal deuda = BigDecimal.ZERO;
         if (esCredito) {
-            // Si no se ingresó pago inicial, se trata como 0
             BigDecimal pi = (pagoInicial != null) ? pagoInicial : BigDecimal.ZERO;
             if (pi.compareTo(total) >= 0) {
                 ra.addFlashAttribute("error", "El pago inicial no puede ser igual o mayor al total. Si cubre el monto completo, usa la forma de pago Contado.");
@@ -146,13 +137,11 @@ public class VentaController {
             v.setDeuda(BigDecimal.ZERO);
         }
 
-        // Asignar venta a detalles
         for (DetalleVenta d : detalles) d.setVenta(v);
         v.setDetalles(detalles);
 
         ventaRepo.save(v);
 
-        // ── Descontar stock de cada producto vendido ────────────────────────
         for (int i = 0; i < productosId.size(); i++) {
             int idx = i; // efectivo-final para lambda
             productoRepo.findById(productosId.get(idx)).ifPresent(prod -> {
@@ -161,7 +150,6 @@ public class VentaController {
             });
         }
 
-        // Generar cuotas si es crédito
         int numCuotas = (nCuotas != null && nCuotas > 0) ? nCuotas : 1;
         if (esCredito && deuda.compareTo(BigDecimal.ZERO) > 0) {
             BigDecimal montoCuota = deuda.divide(BigDecimal.valueOf(numCuotas), 2, RoundingMode.HALF_UP);
@@ -186,9 +174,6 @@ public class VentaController {
         return "redirect:/ventas";
     }
 
-    // =====================================
-    // ANULAR VENTA
-    // =====================================
     @PostMapping("/anular/{id}")
     @Transactional
     public String anular(@PathVariable Integer id, RedirectAttributes ra) {
@@ -197,9 +182,7 @@ public class VentaController {
             ra.addFlashAttribute("error", "Venta no encontrada.");
             return "redirect:/ventas";
         }
-        // Solo restaurar stock si la venta tenía stock descontado:
-        // - Ventas admin (no PEDIDO-ONLINE) siempre descontaron stock en guardar()
-        // - Pedidos online solo si estaban APROBADOS (stock descontado al aprobar)
+   
         boolean restaurarStock = !"PEDIDO-ONLINE".equals(v.getSerie())
                 || "APROBADO".equals(v.getAprobacionPedido());
 
@@ -219,9 +202,6 @@ public class VentaController {
         return "redirect:/ventas";
     }
 
-    // =====================================
-    // APROBAR / RECHAZAR PEDIDO ONLINE
-    // =====================================
     @PostMapping("/{id}/aprobar")
     @ResponseBody
     @Transactional
@@ -229,7 +209,6 @@ public class VentaController {
         Map<String, Object> res = new HashMap<>();
         try {
             Venta v = ventaRepo.findById(id).orElseThrow();
-            // Validar y descontar stock antes de aprobar
             if (v.getDetalles() != null) {
                 for (DetalleVenta d : v.getDetalles()) {
                     if (d.getProductoId() == null) continue;
@@ -279,9 +258,7 @@ public class VentaController {
             v.setAprobacionPedido("RECHAZADO");
             v.setEstado("ANULADA");
             ventaRepo.save(v);
-            // Solo restaurar stock si era un pedido online YA APROBADO
-            // (porque el stock solo se descuenta al aprobar)
-            // Pedidos PENDIENTE nunca tuvieron stock descontado
+           
             if (esPedidoOnlineAprobado && v.getDetalles() != null) {
                 for (DetalleVenta d : v.getDetalles()) {
                     if (d.getProductoId() != null) {
@@ -301,9 +278,7 @@ public class VentaController {
         return res;
     }
 
-    // =====================================
-    // DETALLE VENTA (JSON para modal)
-    // =====================================
+    
     @GetMapping("/detalle/{id}")
     @ResponseBody
     public Map<String, Object> detalle(@PathVariable Integer id) {
@@ -324,7 +299,6 @@ public class VentaController {
         map.put("nCuotas",         v.getNCuotas() != null ? v.getNCuotas() : 0);
         map.put("intervaloPago",   v.getIntervaloPago() != null ? v.getIntervaloPago() : "-");
 
-        // Detalles de productos
         List<Map<String, Object>> detallesList = new ArrayList<>();
         if (v.getDetalles() != null) {
             for (DetalleVenta d : v.getDetalles()) {
@@ -338,7 +312,6 @@ public class VentaController {
         }
         map.put("detalles", detallesList);
 
-        // Cuotas
         List<Map<String, Object>> cuotasList = new ArrayList<>();
         for (Cuota c : cuotaRepo.findByVentaId(id)) {
             Map<String, Object> cm = new HashMap<>();
@@ -355,9 +328,7 @@ public class VentaController {
         return map;
     }
 
-    // =====================================
-    // PAGAR CUOTA
-    // =====================================
+   
     @PostMapping("/cuota/pagar")
     @ResponseBody
     public Map<String, Object> pagarCuota(
@@ -371,7 +342,6 @@ public class VentaController {
         try {
             Cuota c = cuotaRepo.findById(cuotaId).orElseThrow();
 
-            // Validar que todas las cuotas anteriores estén pagadas
             List<Cuota> todasLasCuotas = cuotaRepo.findByVentaId(c.getVenta().getId());
             boolean hayPendienteAnterior = todasLasCuotas.stream()
                     .anyMatch(cu -> cu.getNumeroCuota() < c.getNumeroCuota()
@@ -395,7 +365,6 @@ public class VentaController {
             c.setMontoPagado("MIXTO".equals(tipoPago) && montoPagado != null ? montoPagado : c.getMonto());
             cuotaRepo.save(c);
 
-            // Recalcular deuda de la venta
             Venta v = c.getVenta();
             BigDecimal deudaRestante = cuotaRepo.findByVentaId(v.getId()).stream()
                     .filter(cu -> "PENDIENTE".equals(cu.getEstado()))
@@ -414,9 +383,6 @@ public class VentaController {
         return result;
     }
 
-    // =====================================
-    // BUSCAR PRODUCTOS (para el select del modal)
-    // =====================================
     @GetMapping("/api/productos")
     @ResponseBody
     public List<Map<String, Object>> buscarProductos(@RequestParam(defaultValue = "") String q) {
@@ -436,15 +402,11 @@ public class VentaController {
         return lista;
     }
 
-    // =====================================
-    // CONSULTAR DNI/RUC (reutiliza lógica)
-    // =====================================
     @GetMapping("/api/consultar")
     @ResponseBody
     public Map<String, Object> consultarDocumento(@RequestParam String documento) {
         Map<String, Object> result = new HashMap<>();
 
-        // 1️⃣ Buscar primero en la base de datos local (tabla clientes)
         var clienteLocal = clienteRepo.findFirstByDocumento(documento);
         if (clienteLocal.isPresent()) {
             result.put("success", true);
@@ -453,7 +415,6 @@ public class VentaController {
             return result;
         }
 
-        // 2️⃣ No está en BD → consultar API externa
         try {
             String url;
             if (documento.length() == 8) {
@@ -492,7 +453,6 @@ public class VentaController {
         return result;
     }
 
-    // Próximo número de documento
     @GetMapping("/api/siguiente-numero")
     @ResponseBody
     public Map<String, Object> siguienteNumero(@RequestParam(defaultValue = "NOTA DE VENTA (N001)") String serie) {
