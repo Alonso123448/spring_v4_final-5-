@@ -43,7 +43,7 @@ public class MigracionController {
         List<String> noExiste = new ArrayList<>();
 
         for (ImagenProducto img : imagenProductoRepo.findAll()) {
-            String rutaActual = img.getRuta(); // ej: /uploads/123_Monitor.jpg
+            String rutaActual = img.getRuta(); 
             if (rutaActual == null || !rutaActual.startsWith("/uploads/")) continue;
 
             Integer productoId = img.getProducto().getId();
