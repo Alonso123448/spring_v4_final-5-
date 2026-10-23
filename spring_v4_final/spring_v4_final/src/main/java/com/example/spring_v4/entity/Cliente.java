@@ -10,8 +10,8 @@ public class Cliente {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    private String documento;   // DNI o RUC
-    private String tipoDocumento; // DNI / RUC
+    private String documento;   
+    private String tipoDocumento; 
     private String nombre;
     private String telefono;
     private String correo;
