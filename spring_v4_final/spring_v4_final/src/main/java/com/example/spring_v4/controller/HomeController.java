@@ -25,7 +25,7 @@ public class HomeController {
 
     @GetMapping("/")
     public String inicio(Model model) {
-        // ── Tarjetas existentes ───────────────────────────────────────────
+        
         model.addAttribute("totalProductos",   productoRepository.count());
         model.addAttribute("totalCategorias",  categoriaRepository.count());
         model.addAttribute("totalProveedores", proveedorRepository.count());
@@ -33,21 +33,18 @@ public class HomeController {
         model.addAttribute("totalRoles",       rolRepository.count());
         model.addAttribute("totalMovimientos", movimientoRepository.count());
 
-        // ── Rangos de tiempo ─────────────────────────────────────────────
         LocalDate hoy = LocalDate.now();
         LocalDateTime inicioDia = hoy.atStartOfDay();
         LocalDateTime finDia    = hoy.plusDays(1).atStartOfDay().minusNanos(1);
         LocalDateTime inicioMes = hoy.withDayOfMonth(1).atStartOfDay();
         LocalDateTime finMes    = hoy.plusMonths(1).withDayOfMonth(1).atStartOfDay().minusNanos(1);
 
-        // ── Stats de ventas ───────────────────────────────────────────────
         BigDecimal ventasHoy = ventaRepository.sumTotalEntre(inicioDia, finDia);
         BigDecimal ventasMes = ventaRepository.sumTotalEntre(inicioMes, finMes);
         long       countVentasHoy   = ventaRepository.countVentasEntre(inicioDia, finDia);
         long       productosVendHoy = ventaRepository.sumProductosVendidosEntre(inicioDia, finDia);
         long       totalClientes    = clienteRepository.count();
 
-        // Ticket promedio del mes
         long countMes = ventaRepository.countVentasEntre(inicioMes, finMes);
         BigDecimal ticketProm = (countMes > 0)
                 ? ventasMes.divide(BigDecimal.valueOf(countMes), 2, java.math.RoundingMode.HALF_UP)
@@ -60,7 +57,6 @@ public class HomeController {
         model.addAttribute("productosVendHoy",productosVendHoy);
         model.addAttribute("totalClientes",   totalClientes);
 
-        // ── Alertas de inventario ─────────────────────────────────────────
         LocalDate limite7d = hoy.plusDays(7);
         model.addAttribute("alertaVencidos",   productoRepository.countVencidos(hoy));
         model.addAttribute("alertaPorVencer",  productoRepository.countPorVencer(hoy, limite7d));
