@@ -32,9 +32,7 @@ public class UsuarioController {
         this.encoder = encoder;
     }
 
-    // =========================
-    // LISTAR USUARIOS
-    // =========================
+  
     @GetMapping
     public String listar(Model model) {
 
@@ -48,9 +46,7 @@ public class UsuarioController {
         return "usuarios";
     }
 
-    // =========================
-    // GUARDAR / EDITAR
-    // =========================
+   
     @PostMapping("/guardar")
 public String guardar(@ModelAttribute Usuario usuario,
                       @RequestParam(required = false) Integer rolesSeleccionados,
@@ -58,12 +54,9 @@ public String guardar(@ModelAttribute Usuario usuario,
 
     Usuario usuarioGuardar;
 
-    // =========================
-    // EDITAR
-    // =========================
+
     if (usuario.getId() != null) {
 
-        // VALIDAR DUPLICADOS EXCLUYENDO EL MISMO ID
         if (usuarioRepo.existsByUsernameAndIdNot(usuario.getUsername(), usuario.getId())) {
             redirectAttributes.addFlashAttribute("error", "El username ya está en uso");
             return "redirect:/usuarios";
@@ -85,21 +78,16 @@ public String guardar(@ModelAttribute Usuario usuario,
         usuarioGuardar.setNombre(usuario.getNombre());
         usuarioGuardar.setEmail(usuario.getEmail());
 
-        // Proteger superadmin
         if (!usuarioGuardar.getUsername().equalsIgnoreCase("superadmin")) {
             usuarioGuardar.setActivo(usuario.getActivo());
         }
 
-        // Actualizar contraseña solo si se escribe nueva
         if (usuario.getPassword() != null && !usuario.getPassword().isBlank()) {
             usuarioGuardar.setPassword(encoder.encode(usuario.getPassword()));
         }
 
     } else {
 
-        // =========================
-        // NUEVO
-        // =========================
         if (usuarioRepo.existsByUsername(usuario.getUsername())) {
             redirectAttributes.addFlashAttribute("error", "El username ya está en uso");
             return "redirect:/usuarios";
@@ -115,13 +103,11 @@ public String guardar(@ModelAttribute Usuario usuario,
             return "redirect:/usuarios";
         }
 
-        // Validar que la contraseña no esté vacía para nuevo usuario
         if (usuario.getPassword() == null || usuario.getPassword().isBlank()) {
             redirectAttributes.addFlashAttribute("error", "La contraseña es obligatoria para un nuevo usuario.");
             return "redirect:/usuarios";
         }
 
-        // Validar que solo exista un SUPERADMIN
         if (rolesSeleccionados != null) {
             Rol rolSeleccionado = rolRepo.findById(rolesSeleccionados).orElse(null);
             if (rolSeleccionado != null && rolSeleccionado.getNombre().equalsIgnoreCase("SUPERADMIN")) {
@@ -132,8 +118,6 @@ public String guardar(@ModelAttribute Usuario usuario,
             }
         }
 
-        // Construir objeto limpio (evita mass assignment de campos internos
-        // como bloqueado, intentosFallidos o passwordTemporal desde el form)
         usuarioGuardar = new Usuario();
         usuarioGuardar.setUsername(usuario.getUsername());
         usuarioGuardar.setNombre(usuario.getNombre());
@@ -145,9 +129,7 @@ public String guardar(@ModelAttribute Usuario usuario,
         usuarioGuardar.setPassword(encoder.encode(usuario.getPassword()));
     }
 
-    // =========================
-    // ROLES
-    // =========================
+    
     Set<Rol> roles = new HashSet<>();
 
     if (rolesSeleccionados != null) {
@@ -164,16 +146,12 @@ public String guardar(@ModelAttribute Usuario usuario,
     return "redirect:/usuarios";
 }
 
-    // =========================
-    // ELIMINAR
-    // =========================
     @PostMapping("/eliminar/{id}")
     public String eliminar(@PathVariable Integer id) {
 
         Usuario usuario = usuarioRepo.findById(id)
                 .orElseThrow();
 
-        // PROTEGER SUPERADMIN
         if (!usuario.getUsername()
                 .equalsIgnoreCase("superadmin")) {
 
@@ -183,16 +161,12 @@ public String guardar(@ModelAttribute Usuario usuario,
         return "redirect:/usuarios";
     }
 
-    // =========================
-    // CAMBIAR ESTADO
-    // =========================
     @PostMapping("/estado/{id}")
     public String cambiarEstado(@PathVariable Integer id) {
 
         Usuario usuario = usuarioRepo.findById(id)
                 .orElseThrow();
 
-        // SUPERADMIN SIEMPRE ACTIVO
         if (!usuario.getUsername()
                 .equalsIgnoreCase("superadmin")) {
 
@@ -204,9 +178,6 @@ public String guardar(@ModelAttribute Usuario usuario,
         return "redirect:/usuarios";
     }
 
-    // =========================
-    // EDITAR USUARIO
-    // =========================
     @GetMapping("/editar/{id}")
     public String editar(@PathVariable Integer id,
                         Model model) {
@@ -229,16 +200,13 @@ public String guardar(@ModelAttribute Usuario usuario,
         return "usuarios";
     }
 
-    // =========================
-    // RESETEAR CONTRASEÑA TEMPORAL
-    // =========================
+  
     @PostMapping("/resetear/{id}")
     @ResponseBody
     public Map<String, Object> resetearPassword(@PathVariable Integer id,
                                                  org.springframework.security.core.Authentication auth) {
         Map<String, Object> res = new HashMap<>();
         try {
-            // Solo superadmin puede resetear
             boolean puedeResetear = auth != null && auth.getAuthorities().stream()
                     .anyMatch(a -> a.getAuthority().equals("ROLE_SUPERADMIN")
                                || a.getAuthority().equals("ROLE_ADMIN"));
@@ -274,9 +242,7 @@ public String guardar(@ModelAttribute Usuario usuario,
         return sb.toString();
     }
 
-    // =========================
-    // VER USUARIO
-    // =========================
+    
     @GetMapping("/ver/{id}")
     public String ver(@PathVariable Integer id,
                     Model model) {
