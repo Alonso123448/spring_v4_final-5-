@@ -19,12 +19,12 @@ public class Cuota {
     private Integer numeroCuota;
     private LocalDate fechaVencimiento;
     private BigDecimal monto;
-    private String estado;        // PENDIENTE / PAGADO
+    private String estado;        
     private LocalDate fechaPago;
-    private String medioPago;     // EFECTIVO, TRANSFERENCIA, YAPE, etc.
-    private String referencia;    // Número de transacción/referencia
-    private String observacion;   // Observaciones del pago
-    private BigDecimal montoPagado; // Para tipo MIXTO (pago parcial)
+    private String medioPago;     
+    private String referencia;    
+    private String observacion;   
+    private BigDecimal montoPagado; 
 
     public Integer getId() { return id; }
     public void setId(Integer id) { this.id = id; }
