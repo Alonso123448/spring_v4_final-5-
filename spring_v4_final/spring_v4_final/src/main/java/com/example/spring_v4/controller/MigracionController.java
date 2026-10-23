@@ -42,7 +42,6 @@ public class MigracionController {
         List<String> errores  = new ArrayList<>();
         List<String> noExiste = new ArrayList<>();
 
-        // ── 1. IMÁGENES DE PRODUCTOS ──────────────────────────────
         for (ImagenProducto img : imagenProductoRepo.findAll()) {
             String rutaActual = img.getRuta(); // ej: /uploads/123_Monitor.jpg
             if (rutaActual == null || !rutaActual.startsWith("/uploads/")) continue;
@@ -70,7 +69,6 @@ public class MigracionController {
             }
         }
 
-        // ── 2. IMÁGENES DE SLIDER ─────────────────────────────────
         for (SliderImagen slider : sliderRepo.findAll()) {
             String rutaActual = slider.getRuta();
             if (rutaActual == null || !rutaActual.startsWith("/uploads/")) continue;
@@ -96,7 +94,6 @@ public class MigracionController {
             }
         }
 
-        // ── 3. LOGOS ──────────────────────────────────────────────
         for (LogoImagen logo : logoRepo.findAll()) {
             String rutaActual = logo.getRuta();
             if (rutaActual == null || !rutaActual.startsWith("/uploads/")) continue;
