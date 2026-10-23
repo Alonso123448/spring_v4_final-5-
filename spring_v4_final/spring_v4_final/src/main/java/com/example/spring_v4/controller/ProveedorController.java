@@ -24,7 +24,7 @@ public class ProveedorController {
         this.productoRepository  = productoRepository;
     }
 
-    // LISTAR
+ 
     @GetMapping
     public String listar(Model model) {
 
@@ -35,7 +35,6 @@ public class ProveedorController {
         return "Proveedores/proveedores";
     }
 
-    // NUEVO
     @GetMapping("/nuevo")
     public String nuevo(Model model) {
 
@@ -46,7 +45,7 @@ public class ProveedorController {
         return "Proveedores/form-proveedor";
     }
 
-    // GUARDAR
+   
     @PostMapping("/guardar")
     public String guardar(
             @ModelAttribute Proveedor proveedor,
@@ -60,16 +59,13 @@ public class ProveedorController {
 
         String nombreTrim = proveedor.getNombre().trim();
 
-        // Validar unicidad de nombre
         if (proveedor.getId() == null) {
-            // Nuevo proveedor
             if (proveedorRepository.existsByNombreIgnoreCase(nombreTrim)) {
                 ra.addFlashAttribute("error",
                     "Ya existe un proveedor con el nombre '" + nombreTrim + "'. Elige un nombre diferente.");
                 return "redirect:/proveedores";
             }
         } else {
-            // Edición: excluir el propio registro
             if (proveedorRepository.existsByNombreIgnoreCaseAndIdNot(nombreTrim, proveedor.getId())) {
                 ra.addFlashAttribute("error",
                     "Ya existe otro proveedor con el nombre '" + nombreTrim + "'. Elige un nombre diferente.");
@@ -103,7 +99,6 @@ public class ProveedorController {
         return "redirect:/proveedores";
     }
 
-    // EDITAR
     @GetMapping("/editar/{id}")
     public String editar(
             @PathVariable Integer id,
@@ -121,7 +116,6 @@ public class ProveedorController {
         return "Proveedores/form-proveedor";
     }
 
-    // ELIMINAR
     @GetMapping("/eliminar/{id}")
     public String eliminar(
             @PathVariable Integer id,
