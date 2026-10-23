@@ -31,9 +31,6 @@ public class ClienteController {
         this.logoRepo = logoRepo;
     }
 
-    // =====================================
-    // LISTADO
-    // =====================================
     @GetMapping({"", "/"})
     public String listar(Model model) {
         model.addAttribute("clientes", clienteRepo.findAll());
@@ -42,9 +39,6 @@ public class ClienteController {
         return "clientes";
     }
 
-    // =====================================
-    // GUARDAR
-    // =====================================
     @PostMapping("/guardar")
     public String guardar(@ModelAttribute Cliente cliente, RedirectAttributes ra) {
         if (cliente.getTelefono() == null || cliente.getTelefono().trim().isEmpty()) {
@@ -55,7 +49,6 @@ public class ClienteController {
             ra.addFlashAttribute("error", "El documento del cliente es obligatorio.");
             return "redirect:/clientes";
         }
-        // Evitar duplicados: si es nuevo (id null) y ya existe el documento
         boolean esNuevo = cliente.getId() == null;
         if (esNuevo && clienteRepo.existsByDocumento(cliente.getDocumento().trim())) {
             ra.addFlashAttribute("error", "Ya existe un cliente con el documento " + cliente.getDocumento().trim() + ".");
@@ -66,18 +59,14 @@ public class ClienteController {
         return "redirect:/clientes";
     }
 
-    // =====================================
-    // EDITAR - cargar datos
-    // =====================================
+    
     @GetMapping("/editar/{id}")
     @ResponseBody
     public Cliente editar(@PathVariable Integer id) {
         return clienteRepo.findById(id).orElseThrow();
     }
 
-    // =====================================
-    // ELIMINAR
-    // =====================================
+
     @PostMapping("/eliminar/{id}")
     public String eliminar(@PathVariable Integer id, RedirectAttributes ra) {
         try {
@@ -89,9 +78,6 @@ public class ClienteController {
         return "redirect:/clientes";
     }
 
-    // =====================================
-    // TOGGLE ESTADO
-    // =====================================
     @PostMapping("/toggle/{id}")
     public String toggle(@PathVariable Integer id) {
         Cliente c = clienteRepo.findById(id).orElseThrow();
@@ -100,15 +86,11 @@ public class ClienteController {
         return "redirect:/clientes";
     }
 
-    // =====================================
-    // API CONSULTAR DNI / RUC
-    // =====================================
     @GetMapping("/api/consultar")
     @ResponseBody
     public Map<String, Object> consultarDocumento(@RequestParam String documento) {
         Map<String, Object> result = new HashMap<>();
 
-        // 1️⃣ Buscar primero en la base de datos local
         var clienteLocal = clienteRepo.findFirstByDocumento(documento);
         if (clienteLocal.isPresent()) {
             result.put("success", true);
@@ -118,7 +100,6 @@ public class ClienteController {
             return result;
         }
 
-        // 2️⃣ No está en BD → consultar API externa
         try {
             String url;
             String tipo;
@@ -178,13 +159,8 @@ public class ClienteController {
         return val.isBlank() ? null : val;
     }
 
-    /**
-     * Intenta extraer el nombre completo del JSON de la API.
-     * Prueba múltiples campos y construye desde partes si es necesario.
-     * Formato final: NOMBRES APELLIDO_PATERNO APELLIDO_MATERNO
-     */
+
     public static String extraerNombreCompleto(String json) {
-        // 1. Campo directo de nombre completo
         String nombre = extraerCampo(json, "nombre_completo");
         if (nombre == null) nombre = extraerCampo(json, "nombreCompleto");
         if (nombre == null) nombre = extraerCampo(json, "razonSocial");
@@ -193,7 +169,6 @@ public class ClienteController {
 
         if (nombre != null && !nombre.isBlank()) return nombre.trim();
 
-        // 2. Construir desde partes individuales
         String nombres = extraerCampo(json, "nombres");
         String apePat  = extraerCampo(json, "ape_paterno");       // miapi.cloud
         if (apePat == null) apePat = extraerCampo(json, "apellidoPaterno");
@@ -203,7 +178,6 @@ public class ClienteController {
         if (apeMat == null) apeMat = extraerCampo(json, "apellido_materno");
 
         if (nombres != null || apePat != null) {
-            // Formato: NOMBRES APELLIDO_PAT APELLIDO_MAT
             return ((nombres  != null ? nombres  + " " : "")
                   + (apePat   != null ? apePat   + " " : "")
                   + (apeMat   != null ? apeMat         : "")).trim();
