@@ -30,7 +30,6 @@ public class PasswordResetController {
         this.encoder      = encoder;
     }
 
-    // ── PASO 1: Formulario de correo ─────────────────────────────────────────
     @GetMapping("/recuperar-password")
     public String mostrarFormCorreo() {
         return "recuperar-password";
@@ -42,7 +41,6 @@ public class PasswordResetController {
                                  Model model) {
         var usuarioOpt = usuarioRepo.findByEmail(email.trim());
 
-        // Siempre mostrar el mismo mensaje (seguridad: no revelar si el correo existe)
         if (usuarioOpt.isPresent()) {
             Usuario u = usuarioOpt.get();
             String token  = resetService.generarToken(u.getUsername());
@@ -59,7 +57,6 @@ public class PasswordResetController {
         return "recuperar-password";
     }
 
-    // ── PASO 2: Formulario nueva contraseña ──────────────────────────────────
     @GetMapping("/recuperar-password/nueva")
     public String mostrarFormNueva(@RequestParam String token, Model model) {
         String username = resetService.getUsernameByToken(token);
