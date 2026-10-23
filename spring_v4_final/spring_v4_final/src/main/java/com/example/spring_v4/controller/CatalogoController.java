@@ -46,7 +46,6 @@ public class CatalogoController {
         this.ventaRepo           = ventaRepo;
     }
 
-    // ─── CATÁLOGO PÚBLICO ───────────────────────────────────────────────────
     @GetMapping({"", "/"})
     public String catalogo(Model model) {
         List<Producto>     productos  = productoRepository.findByEstadoTrue();
@@ -67,7 +66,6 @@ public class CatalogoController {
         return "catalogo";
     }
 
-    // ─── VERIFICAR UNICIDAD DE CÓDIGO DE OPERACIÓN ───────────────────────────
     @GetMapping("/verificar-codigo")
     @ResponseBody
     public Map<String, Object> verificarCodigo(@RequestParam String codigo) {
@@ -77,7 +75,6 @@ public class CatalogoController {
         return res;
     }
 
-    // ─── BÚSQUEDA DE CLIENTES (autocompletar DNI) ──────────────────────────
     @GetMapping("/clientes/buscar")
     @ResponseBody
     public List<Map<String, String>> buscarClientes(@RequestParam(defaultValue = "") String q) {
@@ -96,7 +93,6 @@ public class CatalogoController {
                 .collect(Collectors.toList());
     }
 
-    // ─── PEDIDO ONLINE (simulación de pago) ────────────────────────────────
     private static final String VOUCHER_DIR = "src/main/resources/static/imagenes/vouchers/";
 
     private static final Set<String> EXTENSIONES_IMAGEN = Set.of(".jpg", ".jpeg", ".png", ".gif", ".webp");
@@ -121,7 +117,6 @@ public class CatalogoController {
 
         Map<String, Object> res = new HashMap<>();
 
-        // ── Validar archivo voucher ────────────────────────────────────────
         if (voucher != null && !voucher.isEmpty()) {
             String origName = voucher.getOriginalFilename() != null ? voucher.getOriginalFilename().toLowerCase() : "";
             String ext = origName.contains(".") ? origName.substring(origName.lastIndexOf('.')) : "";
@@ -132,7 +127,6 @@ public class CatalogoController {
             }
         }
 
-        // ── Validar stock y obtener precios reales desde BD ────────────────
         List<Producto> productosDB = new ArrayList<>();
         for (int i = 0; i < productosId.size(); i++) {
             Producto p = productoRepository.findById(productosId.get(i)).orElse(null);
@@ -152,7 +146,6 @@ public class CatalogoController {
             productosDB.add(p);
         }
 
-        // ── Calcular total con precios reales de BD (nunca del frontend) ───
         BigDecimal total = BigDecimal.ZERO;
         List<DetalleVenta> detalles = new ArrayList<>();
         for (int i = 0; i < productosDB.size(); i++) {
@@ -169,15 +162,12 @@ public class CatalogoController {
             detalles.add(d);
         }
 
-        // ── Número de pedido — sincronizado para evitar duplicados ────────
         String serie = "PEDIDO-ONLINE";
         String numDoc;
         synchronized (CatalogoController.class) {
             long count = ventaRepo.countBySerie(serie) + 1;
             numDoc = String.format("PED-%08d", count);
         }
-
-        // ── Crear venta ────────────────────────────────────────────────────
         Venta v = new Venta();
         v.setNumeroDocumento(numDoc);
         v.setSerie(serie);
@@ -196,14 +186,12 @@ public class CatalogoController {
         v.setDeuda(BigDecimal.ZERO);
         v.setEstado("PENDIENTE");
 
-        // Todos los pedidos online quedan PENDIENTE de aprobación
         v.setAprobacionPedido("PENDIENTE");
 
         for (DetalleVenta d : detalles) d.setVenta(v);
         v.setDetalles(detalles);
         ventaRepo.save(v);
 
-        // Guardar voucher si fue enviado
         if (voucher != null && !voucher.isEmpty()) {
             try {
                 Files.createDirectories(Paths.get(VOUCHER_DIR));
@@ -218,8 +206,6 @@ public class CatalogoController {
             }
         }
 
-        // El stock se descuenta solo cuando el admin aprueba el pedido
-        // No se toca el stock aquí
 
         res.put("ok",     true);
         res.put("pedido", numDoc);
