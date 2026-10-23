@@ -12,7 +12,6 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
 
-        // Servir /imagenes/** desde el filesystem (src/main/resources/static/imagenes/)
         String absolutePath = Paths.get("src/main/resources/static/imagenes/")
                 .toAbsolutePath().toUri().toString();
 
@@ -20,7 +19,6 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 .addResourceLocations(absolutePath)
                 .setCachePeriod(0); // sin caché en desarrollo
 
-        // Servir /uploads/** para compatibilidad con imágenes antiguas
         String uploadsPath = Paths.get("src/main/resources/static/uploads/")
                 .toAbsolutePath().toUri().toString();
 
