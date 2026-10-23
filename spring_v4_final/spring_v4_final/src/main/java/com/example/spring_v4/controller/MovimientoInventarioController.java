@@ -27,9 +27,7 @@ public class MovimientoInventarioController {
         this.productoRepository   = productoRepository;
     }
 
-    // =====================================
-    // LISTAR MOVIMIENTOS
-    // =====================================
+   
     @GetMapping
     public String listar(Model model) {
         List<MovimientoInventario> movimientos = movimientoRepository.findAll();
@@ -39,23 +37,19 @@ public class MovimientoInventarioController {
         return "movimientos";
     }
 
-    // =====================================
-    // GUARDAR MOVIMIENTO
-    // =====================================
+   
     @PostMapping("/guardar")
     public String guardar(
             @ModelAttribute MovimientoInventario movimiento,
             Authentication auth,
             RedirectAttributes ra) {
 
-        // Validar cantidad
         Integer cantidad = movimiento.getCantidad();
         if (cantidad == null || cantidad <= 0) {
             ra.addFlashAttribute("error", "La cantidad debe ser mayor a 0.");
             return "redirect:/movimientos";
         }
 
-        // Buscar producto
         Producto producto;
         try {
             producto = productoRepository
@@ -68,14 +62,12 @@ public class MovimientoInventarioController {
 
         int stockActual = producto.getStock() != null ? producto.getStock() : 0;
 
-        // Validar tipo
         String tipo = movimiento.getTipo();
         if (tipo == null || (!tipo.equals("ENTRADA") && !tipo.equals("SALIDA"))) {
             ra.addFlashAttribute("error", "El tipo de movimiento no es válido.");
             return "redirect:/movimientos";
         }
 
-        // Aplicar movimiento de stock
         if (tipo.equals("ENTRADA")) {
             producto.setStock(stockActual + cantidad);
 
@@ -91,7 +83,6 @@ public class MovimientoInventarioController {
 
         productoRepository.save(producto);
 
-        // Completar datos del movimiento
         movimiento.setProducto(producto);
         movimiento.setFecha(LocalDateTime.now());
         movimiento.setUsuario(auth != null ? auth.getName() : "Sistema");
