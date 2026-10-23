@@ -51,7 +51,6 @@ public class VerificacionPagosController {
         Map<String, Object> res = new HashMap<>();
         Venta v = ventaRepo.findById(id).orElse(null);
         if (v == null) { res.put("ok", false); res.put("msg", "Pedido no encontrado"); return res; }
-        // Validar tipo de archivo del voucher admin
         if (voucherAdmin != null && !voucherAdmin.isEmpty()) {
             String origName = voucherAdmin.getOriginalFilename() != null ? voucherAdmin.getOriginalFilename().toLowerCase() : "";
             String ext = origName.contains(".") ? origName.substring(origName.lastIndexOf('.')) : "";
@@ -59,7 +58,6 @@ public class VerificacionPagosController {
                 res.put("ok", false); res.put("msg", "El voucher debe ser una imagen (jpg, png, gif, webp)."); return res;
             }
         }
-        // ── Validar stock disponible antes de aprobar ─────────────────────
         if (v.getDetalles() != null) {
             for (DetalleVenta d : v.getDetalles()) {
                 if (d.getProductoId() == null) continue;
@@ -81,7 +79,6 @@ public class VerificacionPagosController {
             }
         }
 
-        // ── Descontar stock al aprobar ────────────────────────────────────
         if (v.getDetalles() != null) {
             for (DetalleVenta d : v.getDetalles()) {
                 if (d.getProductoId() == null) continue;
@@ -176,8 +173,7 @@ public class VerificacionPagosController {
         Map<String, Object> res = new HashMap<>();
         Venta v = ventaRepo.findById(id).orElse(null);
         if (v == null) { res.put("ok", false); res.put("msg", "Pedido no encontrado"); return res; }
-        // El stock nunca fue descontado (se descuenta solo al aprobar),
-        // así que no hay nada que restaurar al rechazar
+        
         v.setAprobacionPedido("RECHAZADO");
         v.setEstado("ANULADA");
         ventaRepo.save(v);
