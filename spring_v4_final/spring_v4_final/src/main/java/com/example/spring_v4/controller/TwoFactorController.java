@@ -76,7 +76,6 @@ public class TwoFactorController {
             return "redirect:/";
         }
 
-        // Si agotó los intentos del código, invalidar sesión y redirigir al login
         if (twoFactorService.estaAgotado(username)) {
             twoFactorService.limpiar(username);
             session.invalidate();
