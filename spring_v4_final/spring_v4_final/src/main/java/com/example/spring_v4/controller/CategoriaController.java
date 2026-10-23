@@ -35,7 +35,6 @@ public class CategoriaController {
     @PostMapping("/guardar")
     public String guardar(@ModelAttribute Categoria categoria, RedirectAttributes ra) {
 
-        // Validar nombre obligatorio
         if (categoria.getNombre() == null || categoria.getNombre().isBlank()) {
             ra.addFlashAttribute("error", "El nombre de la categoría es obligatorio.");
             return "redirect:/categorias";
