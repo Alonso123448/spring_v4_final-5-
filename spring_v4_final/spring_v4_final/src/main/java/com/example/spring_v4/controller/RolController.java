@@ -24,9 +24,6 @@ public class RolController {
     private final PermisoRepository permisoRepository;
     private final UsuarioRepository usuarioRepository;
 
-    // =========================
-    // CONSTRUCTOR
-    // =========================
     public RolController(
             RolRepository rolRepository,
             PermisoRepository permisoRepository,
@@ -37,9 +34,7 @@ public class RolController {
         this.usuarioRepository = usuarioRepository;
     }
 
-    // =========================
-    // LISTAR ROLES
-    // =========================
+    
     @GetMapping
     public String listar(Model model) {
 
@@ -48,7 +43,6 @@ public class RolController {
                 rolRepository.findAll()
         );
 
-        // enviar permisos al frontend
         model.addAttribute(
                 "permisos",
                 permisoRepository.findAll()
@@ -57,9 +51,7 @@ public class RolController {
         return "roles";
     }
 
-    // =========================
-    // NUEVO ROL
-    // =========================
+   
     @GetMapping("/nuevo")
     public String nuevo(Model model) {
 
@@ -71,39 +63,31 @@ public class RolController {
         return "rol-form";
     }
 
-    // =========================
-    // GUARDAR ROL
-    // =========================
+ 
     @PostMapping("/guardar")
     public String guardar(@ModelAttribute Rol rol, RedirectAttributes ra) {
 
-        // Validar nombre obligatorio
         if (rol.getNombre() == null || rol.getNombre().isBlank()) {
             ra.addFlashAttribute("error", "El nombre del perfil es obligatorio.");
             return "redirect:/roles";
         }
 
-        // Validar nombre solo letras y espacios (sin números ni caracteres especiales)
         if (!rol.getNombre().matches("^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\\s]+$")) {
             ra.addFlashAttribute("error", "El nombre del perfil solo puede contener letras y espacios.");
             return "redirect:/roles";
         }
 
-        // Validar descripción obligatoria
         if (rol.getDescripcion() == null || rol.getDescripcion().isBlank()) {
             ra.addFlashAttribute("error", "La descripción del perfil es obligatoria.");
             return "redirect:/roles";
         }
 
-        // SUPERADMIN siempre activo
         if ("SUPERADMIN".equalsIgnoreCase(rol.getNombre())) {
             rol.setEstado(true);
         }
 
-        // Normalizar nombre antes de verificar duplicados
         String nombreNormalizado = rol.getNombre().trim().toUpperCase();
 
-        // Validar unicidad: distinto comportamiento para nuevo vs edición
         if (rol.getId() == null) {
             if (rolRepository.existsByNombre(nombreNormalizado)) {
                 ra.addFlashAttribute("error", "Ya existe un perfil con el nombre '" + nombreNormalizado + "'. Elige un nombre diferente.");
@@ -125,9 +109,7 @@ public class RolController {
         return "redirect:/roles";
     }
 
-    // =========================
-    // EDITAR
-    // =========================
+   
     @GetMapping("/editar/{id}")
     public String editar(
             @PathVariable Integer id,
@@ -143,21 +125,17 @@ public class RolController {
         return "rol-form";
     }
 
-    // =========================
-    // ELIMINAR
-    // =========================
+    
     @PostMapping("/eliminar/{id}")
     public String eliminar(@PathVariable Integer id, RedirectAttributes ra) {
 
         Rol rol = rolRepository.findById(id).orElseThrow();
 
-        // Proteger SUPERADMIN
         if ("SUPERADMIN".equalsIgnoreCase(rol.getNombre())) {
             ra.addFlashAttribute("error", "El perfil 'SUPERADMIN' no se puede eliminar.");
             return "redirect:/roles";
         }
 
-        // Verificar si el perfil está asignado a algún usuario
         if (usuarioRepository.existsByRolesId(id)) {
             ra.addFlashAttribute("error",
                 "No se puede eliminar el perfil '" + rol.getNombre() +
@@ -176,9 +154,7 @@ public class RolController {
         return "redirect:/roles";
     }
 
-    // =========================
-    // GUARDAR PERMISOS
-    // =========================
+    
     @PostMapping("/guardar-permisos")
 public String guardarPermisos(
         @RequestParam Integer rolId,
@@ -189,9 +165,6 @@ public String guardarPermisos(
             .findById(rolId)
             .orElseThrow();
 
-    // =========================
-    // PROTEGER SUPERADMIN
-    // =========================
     if ("SUPERADMIN".equalsIgnoreCase(rol.getNombre())) {
 
         return "redirect:/roles";
@@ -199,7 +172,6 @@ public String guardarPermisos(
 
     Set<Permiso> nuevosPermisos = new HashSet<>();
 
-    // si seleccionó permisos
     if (permisos != null) {
 
         nuevosPermisos.addAll(
