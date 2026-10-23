@@ -10,9 +10,8 @@ function escapeHtml(str) {
         .replace(/'/g, '&#39;');
 }
 
-// =========================
-// SWIPER
-// =========================
+// leo estuvo aqui
+
 
 // Aplicar backgrounds antes de inicializar Swiper
 document.querySelectorAll('.swiper-slide[data-bg]').forEach(el => {
