@@ -40,16 +40,13 @@ public class NotaVentaController {
         this.emailService = emailService;
     }
 
-    // ====================================================
-    // LISTADO DE NOTAS DE VENTA
-    // ====================================================
+    
     @GetMapping({"", "/"})
     public String listar(Model model) {
 
         List<Venta> ventas = ventaRepo.findAll();
-        ventas.sort((a, b) -> Integer.compare(b.getId(), a.getId())); // más recientes primero
+        ventas.sort((a, b) -> Integer.compare(b.getId(), a.getId())); 
 
-        // Mapa documento → cliente para obtener teléfono
         Map<String, Cliente> clienteMap = new HashMap<>();
         for (Venta v : ventas) {
             String doc = v.getClienteDocumento();
@@ -68,9 +65,7 @@ public class NotaVentaController {
         return "notas-venta";
     }
 
-    // ====================================================
-    // VISTA DE IMPRESIÓN
-    // ====================================================
+  
     @GetMapping("/{id}/imprimir")
     public String imprimir(@PathVariable Integer id, Model model) {
 
@@ -89,9 +84,7 @@ public class NotaVentaController {
         return "nota-venta-imprimir";
     }
 
-    // ====================================================
-    // ENVIAR COMPROBANTE POR CORREO
-    // ====================================================
+   
     @PostMapping("/{id}/enviar-correo")
     @ResponseBody
     public Map<String, Object> enviarCorreo(
@@ -102,7 +95,6 @@ public class NotaVentaController {
         try {
             Venta venta = ventaRepo.findById(id).orElseThrow();
 
-            // Validar formato básico de email
             if (correo == null || !correo.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")) {
                 res.put("ok", false);
                 res.put("msg", "Correo electrónico no válido.");
