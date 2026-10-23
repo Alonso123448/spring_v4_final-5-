@@ -45,15 +45,10 @@ public class UsuarioService implements UserDetailsService {
 
         ).collect(Collectors.toList());
 
-authorities.forEach(a ->
-    System.out.println("PERMISO: " + a.getAuthority())
-);
-
-
         return new User(
                 usuario.getUsername(),
                 usuario.getPassword(),
-                usuario.getActivo(),
+                !Boolean.FALSE.equals(usuario.getActivo()),   // null se trata como activo (valor por defecto)
                 true,
                 true,
                 !usuario.getBloqueado(),   // accountNonLocked
