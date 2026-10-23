@@ -53,9 +53,6 @@ public class SliderLogoController {
         return EXT_PERMITIDAS.contains(ext);
     }
 
-    // =====================================
-    // PANEL PRINCIPAL
-    // =====================================
 
     @GetMapping({"", "/"})
     public String panel(Model model) {
@@ -66,9 +63,6 @@ public class SliderLogoController {
         return "slider-logo";
     }
 
-    // =====================================
-    // GUARDAR SLIDER
-    // =====================================
 
     @PostMapping("/slider/guardar")
     public String guardarSlider(
@@ -101,9 +95,7 @@ public class SliderLogoController {
         return "redirect:/slider-logo?successSlider=guardado";
     }
 
-    // =====================================
-    // ELIMINAR SLIDER
-    // =====================================
+
 
     @GetMapping("/slider/eliminar/{id}")
     public String eliminarSlider(@PathVariable Integer id) {
@@ -115,9 +107,7 @@ public class SliderLogoController {
         return "redirect:/slider-logo?successSlider=eliminado";
     }
 
-    // =====================================
-    // GUARDAR LOGO
-    // =====================================
+    
 
     @PostMapping("/logo/guardar")
     public String guardarLogo(
@@ -148,9 +138,7 @@ public class SliderLogoController {
         return "redirect:/slider-logo?successLogo=guardado";
     }
 
-    // =====================================
-    // ELIMINAR LOGO
-    // =====================================
+   
 
     @GetMapping("/logo/eliminar/{id}")
     public String eliminarLogo(@PathVariable Integer id) {
@@ -162,10 +150,7 @@ public class SliderLogoController {
         return "redirect:/slider-logo?successLogo=eliminado";
     }
 
-    // =====================================
-    // ACTIVAR / DESACTIVAR SLIDER
-    // =====================================
-
+   
     @GetMapping("/slider/toggle/{id}")
     public String toggleSlider(@PathVariable Integer id) {
         try {
@@ -176,9 +161,7 @@ public class SliderLogoController {
         return "redirect:/slider-logo";
     }
 
-    // =====================================
-    // ACTIVAR / DESACTIVAR LOGO
-    // =====================================
+
 
     @GetMapping("/logo/toggle/{id}")
     public String toggleLogo(@PathVariable Integer id) {
@@ -190,10 +173,7 @@ public class SliderLogoController {
         return "redirect:/slider-logo";
     }
 
-    // =====================================
-    // API PUBLICO — para catálogo
-    // =====================================
-
+ 
     @GetMapping("/api/sliders")
     @ResponseBody
     public List<SliderImagen> apiSliders() {
@@ -206,9 +186,6 @@ public class SliderLogoController {
         return logoRepo.findByActivoTrue();
     }
 
-    // =====================================
-    // HELPER
-    // =====================================
 
     private void eliminarArchivo(String ruta) {
         if (ruta == null) return;
