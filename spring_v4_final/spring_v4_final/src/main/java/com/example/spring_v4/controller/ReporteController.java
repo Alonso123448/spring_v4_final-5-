@@ -41,7 +41,6 @@ public class ReporteController {
 
         List<Venta> todas = ventaRepo.findAll();
 
-        // ── Ventas válidas: no anuladas, online solo aprobadas, con fecha y total ──
         List<Venta> validas = todas.stream()
                 .filter(v -> !"ANULADA".equals(v.getEstado()))
                 .filter(v -> v.getAprobacionPedido() == null || "APROBADO".equals(v.getAprobacionPedido()))
@@ -51,7 +50,6 @@ public class ReporteController {
         LocalDate hoy = LocalDate.now();
         YearMonth mesActual = YearMonth.from(hoy);
 
-        // ── KPIs ──────────────────────────────────────────────────────────
         BigDecimal ventasHoy = BigDecimal.ZERO;
         BigDecimal ventasMes = BigDecimal.ZERO;
         BigDecimal ventasAnio = BigDecimal.ZERO;
@@ -64,7 +62,6 @@ public class ReporteController {
             if (YearMonth.from(f).equals(mesActual))  { ventasMes  = ventasMes.add(v.getTotal()); transaccionesMes++; }
             if (f.getYear() == hoy.getYear())           ventasAnio = ventasAnio.add(v.getTotal());
         }
-        // Créditos por cobrar (deuda pendiente, incluso de ventas antiguas)
         for (Venta v : todas) {
             if (!"ANULADA".equals(v.getEstado())
                     && Boolean.TRUE.equals(v.getEsCredito())
@@ -74,7 +71,6 @@ public class ReporteController {
             }
         }
 
-        // ── Ventas por mes (últimos 12 meses) ─────────────────────────────
         List<String> mesLabels = new ArrayList<>();
         List<BigDecimal> mesTotales = new ArrayList<>();
         for (int i = 11; i >= 0; i--) {
@@ -89,7 +85,6 @@ public class ReporteController {
             mesTotales.add(suma);
         }
 
-        // ── Productos cacheados para lookups (id y nombre) ────────────────
         List<Producto> productos = productoRepo.findAll();
         Map<Integer, Producto> prodPorId = new HashMap<>();
         Map<String, Producto> prodPorNombre = new HashMap<>();
@@ -98,7 +93,6 @@ public class ReporteController {
             if (p.getNombre() != null) prodPorNombre.put(p.getNombre().trim().toLowerCase(), p);
         }
 
-        // ── Top 10 productos más vendidos + Ingresos por categoría ────────
         Map<String, Integer> vendidosPorProducto = new LinkedHashMap<>();
         Map<String, BigDecimal> ingresosPorCategoria = new LinkedHashMap<>();
 
@@ -109,7 +103,6 @@ public class ReporteController {
                 int cant = d.getCantidad() != null ? d.getCantidad() : 0;
                 vendidosPorProducto.merge(nombre, cant, Integer::sum);
 
-                // categoría: por id, fallback por nombre
                 Producto p = d.getProductoId() != null ? prodPorId.get(d.getProductoId()) : null;
                 if (p == null) p = prodPorNombre.get(nombre.toLowerCase());
                 String cat = (p != null && p.getCategoria() != null && p.getCategoria().getNombre() != null)
@@ -140,7 +133,6 @@ public class ReporteController {
                 })
                 .toList();
 
-        // ── Ventas por método de pago ─────────────────────────────────────
         Map<String, BigDecimal> pagoTotales = new LinkedHashMap<>();
         Map<String, Long> pagoConteos = new LinkedHashMap<>();
         for (Venta v : validas) {
@@ -160,7 +152,6 @@ public class ReporteController {
                 })
                 .toList();
 
-        // ── Ventas por origen (catálogo vs administrativo) ────────────────
         BigDecimal totalCatalogo = BigDecimal.ZERO, totalAdmin = BigDecimal.ZERO;
         long pedidosCatalogo = 0, pedidosAdmin = 0;
         for (Venta v : validas) {
@@ -171,7 +162,6 @@ public class ReporteController {
             }
         }
 
-        // ── Productos con stock bajo ──────────────────────────────────────
         List<Map<String, Object>> stockBajo = new ArrayList<>();
         for (Producto p : productos) {
             if (!Boolean.TRUE.equals(p.getEstado())) continue;
@@ -190,7 +180,6 @@ public class ReporteController {
         }
         stockBajo.sort(Comparator.comparingInt(m -> (int) m.get("stock")));
 
-        // ── Modelo ────────────────────────────────────────────────────────
         model.addAttribute("ventasHoy", ventasHoy);
         model.addAttribute("ventasMes", ventasMes);
         model.addAttribute("ventasAnio", ventasAnio);
