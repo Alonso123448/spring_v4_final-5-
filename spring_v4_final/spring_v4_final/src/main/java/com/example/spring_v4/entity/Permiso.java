@@ -13,7 +13,6 @@ public class Permiso {
     @Column(nullable = false, unique = true)
     private String nombre;
 
-    // GETTERS Y SETTERS
 
     public Integer getId() {
         return id;
