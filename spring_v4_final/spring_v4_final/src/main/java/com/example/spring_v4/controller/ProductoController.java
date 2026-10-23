@@ -70,9 +70,7 @@ public class ProductoController {
         this.movimientoInventarioRepository = movimientoInventarioRepository;
     }
 
-    // =====================================
-    // LISTAR
-    // =====================================
+
     @GetMapping({"", "/"})
     public String listarProductos(Model model) {
         model.addAttribute("productos", productoRepository.findAll());
@@ -81,16 +79,12 @@ public class ProductoController {
         return "productos";
     }
 
-    // =====================================
-    // GUARDAR / EDITAR
-    // =====================================
     @PostMapping("/guardar")
     public String guardar(
             @ModelAttribute Producto producto,
             @RequestParam("archivos") MultipartFile[] archivos,
             RedirectAttributes ra) {
 
-        // ── VALIDACIONES DE NEGOCIO ──
         List<String> errores = new ArrayList<>();
 
         if (producto.getNombre() == null || producto.getNombre().isBlank())
@@ -139,7 +133,7 @@ public class ProductoController {
 
             Producto guardado = productoRepository.save(productoGuardar);
 
-            // MOVIMIENTO inicial
+       
             if (esNuevo && guardado.getStock() != null && guardado.getStock() > 0) {
                 MovimientoInventario movimiento = new MovimientoInventario();
                 movimiento.setProducto(guardado);
@@ -149,12 +143,11 @@ public class ProductoController {
                 movimientoInventarioRepository.save(movimiento);
             }
 
-            // CARPETA por producto: imagenes/productos/{id}/
+            
             String carpetaProducto = BASE_DIR + guardado.getId() + "/";
             File directorio = new File(carpetaProducto);
             if (!directorio.exists()) directorio.mkdirs();
 
-            // Contar imágenes existentes
             int imagenesActuales = (guardado.getImagenes() != null) ? guardado.getImagenes().size() : 0;
 
             List<ImagenProducto> listaImagenes = new ArrayList<>();
@@ -203,9 +196,6 @@ public class ProductoController {
         return "redirect:/productos";
     }
 
-    // =====================================
-    // ELIMINAR IMAGEN INDIVIDUAL
-    // =====================================
     @PostMapping("/imagen/eliminar/{id}")
     public String eliminarImagen(@PathVariable Integer id) {
         try {
@@ -220,9 +210,7 @@ public class ProductoController {
         return "redirect:/productos";
     }
 
-    // =====================================
-    // ELIMINAR PRODUCTO
-    // =====================================
+
     @PostMapping("/eliminar/{id}")
     public String eliminar(@PathVariable Integer id) {
         try {
@@ -240,9 +228,7 @@ public class ProductoController {
         return "redirect:/productos?success=eliminado";
     }
 
-    // =====================================
-    // BUSCAR (incluye imágenes)
-    // =====================================
+  
     @GetMapping("/buscar/{id}")
     @ResponseBody
     public Map<String, Object> buscar(@PathVariable Integer id) {
@@ -259,7 +245,6 @@ public class ProductoController {
         data.put("categoriaId", p.getCategoria() != null ? p.getCategoria().getId() : null);
         data.put("proveedorId", p.getProveedor() != null ? p.getProveedor().getId() : null);
 
-        // Incluir imágenes existentes
         List<Map<String,Object>> imgs = new ArrayList<>();
         if (p.getImagenes() != null) {
             for (ImagenProducto img : p.getImagenes()) {
