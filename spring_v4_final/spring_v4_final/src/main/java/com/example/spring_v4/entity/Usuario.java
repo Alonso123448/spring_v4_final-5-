@@ -39,7 +39,6 @@ public class Usuario {
 
     private Boolean bloqueado = false;
 
-    // MUCHOS ROLES
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "usuario_roles",
@@ -47,10 +46,6 @@ public class Usuario {
             inverseJoinColumns = @JoinColumn(name = "rol_id")
     )
     private Set<Rol> roles = new HashSet<>();
-
-    // =====================================
-    // GETTERS Y SETTERS
-    // =====================================
 
     public Integer getId() {
         return id;
@@ -107,10 +102,6 @@ public class Usuario {
     public void setRoles(Set<Rol> roles) {
         this.roles = roles;
     }
-
-    // =====================================
-    // MÉTODOS AUXILIARES PARA SECURITY
-    // =====================================
 
     public Boolean getPasswordTemporal() { return passwordTemporal != null && passwordTemporal; }
     public void setPasswordTemporal(Boolean passwordTemporal) { this.passwordTemporal = passwordTemporal; }
