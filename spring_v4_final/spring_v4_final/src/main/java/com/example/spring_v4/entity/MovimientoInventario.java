@@ -11,30 +11,20 @@ public class MovimientoInventario {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // PRODUCTO
     @ManyToOne
     @JoinColumn(name = "producto_id")
     private Producto producto;
 
-    // TIPO
-    // ENTRADA o SALIDA
     private String tipo;
 
-    // CANTIDAD
     private Integer cantidad;
 
-    // FECHA
     private LocalDateTime fecha;
 
-    // OBSERVACIÓN
     private String observacion;
 
-    // USUARIO QUE REALIZÓ EL MOVIMIENTO
     private String usuario;
 
-    // =========================
-    // GETTERS Y SETTERS
-    // =========================
 
     public Long getId() {
         return id;
